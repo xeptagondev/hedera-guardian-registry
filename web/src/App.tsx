@@ -45,6 +45,7 @@ import SLCFAddProgramme from './Pages/SLCFProgrammeManagement/SLCFAddProgramme';
 import SLCFMonitoringReport from './Pages/SLCFProgrammeManagement/SLCFMonitoringReport';
 import SLCFProjectDetailsView from './Pages/SLCFProgrammeManagement/SLCFProjectDetailsView';
 import CMAFormPage from './Pages/CMAFormPage/CMAFormPage';
+import ValidationReportPage from './Pages/ValidationReportPage.tsx/ValidationReportPage';
 
 const App = () => {
   const ability = defineAbility();
@@ -106,6 +107,7 @@ const App = () => {
                     element={<CustomLayout selectedKey="programmeManagementSLCF/viewAll" />}
                   >
                     <Route path="CMAForm" element={<CMAFormPage />} />
+                    <Route path="validationReport" element={<ValidationReportPage />} />
                   </Route>
 
                   <Route
