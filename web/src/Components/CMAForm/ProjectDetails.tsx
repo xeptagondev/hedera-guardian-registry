@@ -31,7 +31,7 @@ const ProjectDetails = (props: CustomStepsProps) => {
         telephone: values?.telephone,
         physicalAddress: values?.physicalAddress,
         email: values?.email,
-        website: 'https://' + values?.website,
+        website: values?.website,
       },
     };
 
