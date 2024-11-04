@@ -31,7 +31,7 @@ const ProjectDetails = (props: CustomStepsProps) => {
         telephone: values?.telephone,
         physicalAddress: values?.physicalAddress,
         email: values?.email,
-        website: values?.website,
+        website: 'https://' + values?.website,
       },
     };
 
@@ -240,6 +240,7 @@ const ProjectDetails = (props: CustomStepsProps) => {
                     <Form.Item
                       label={t('CMAForm:website')}
                       name="website"
+                      className="website-input"
                       rules={[
                         {
                           required: true,
@@ -260,7 +261,7 @@ const ProjectDetails = (props: CustomStepsProps) => {
                         },
                       ]}
                     >
-                      <Input size="large" disabled={disableFields} />
+                      <Input size="large" disabled={disableFields} addonBefore="https://" />
                     </Form.Item>
                   </div>
                 </Col>
