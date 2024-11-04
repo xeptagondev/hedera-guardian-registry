@@ -32,7 +32,9 @@ const CMA_STEPS = {};
 
 const StepperComponent = (props: any) => {
   const { t, form } = props;
-  const [current, setCurrent] = useState(5);
+  const [current, setCurrent] = useState(0
+    
+  );
   const navigate = useNavigate();
 
   const { state } = useLocation();
