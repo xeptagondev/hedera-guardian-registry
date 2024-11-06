@@ -103,8 +103,8 @@ export class ProgrammeSlDto {
 
   @ApiPropertyOptional()
   @ValidateIf((o) => o.projectCategory === ProjectCategory.RENEWABLE_ENERGY)
-  @IsNumber()
-  proposedProjectCapacity?: number;
+  @IsString()
+  proposedProjectCapacity?: string;
 
   @ApiPropertyOptional()
   @ValidateIf(
@@ -132,6 +132,11 @@ export class ProgrammeSlDto {
       "Invalid project status. Supported following project status:" + Object.values(ProjectStatus),
   })
   projectStatus: ProjectStatus;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  projectStatusDescription?: string;
 
   @ApiProperty({ enum: CreditType })
   @IsNotEmpty()
