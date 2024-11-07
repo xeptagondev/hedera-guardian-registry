@@ -54,19 +54,6 @@ export class AsyncOperationsDatabaseService implements AsyncOperationsInterface 
       if (this.emailDisabled) return false;
     }
 
-    if (
-      [
-        AsyncActionType.CADTProgrammeCreate,
-        AsyncActionType.CADTCertify,
-        AsyncActionType.CADTCreditIssue,
-        AsyncActionType.CADTTransferCredit,
-        AsyncActionType.CADTUpdateProgramme,
-      ].includes(action.actionType) &&
-      !this.configService.get("cadTrust.enable")
-    ) {
-      return false;
-    }
-
     let asyncActionEntity: AsyncActionEntity = {} as AsyncActionEntity;
     asyncActionEntity.actionType = action.actionType;
     asyncActionEntity.actionProps = JSON.stringify(action.actionProps);
