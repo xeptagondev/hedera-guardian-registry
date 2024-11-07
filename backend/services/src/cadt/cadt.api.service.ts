@@ -112,6 +112,8 @@ export class CadtApiService {
       throw new Error("Programme not created yet")
     }
 
+    console.log("cadt createProgramme called");
+
     const companies = await this.companyService.findByCompanyIds({
       companyIds: programme.companyId,
     });

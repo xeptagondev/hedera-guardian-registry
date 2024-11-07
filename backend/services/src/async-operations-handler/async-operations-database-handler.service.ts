@@ -48,6 +48,8 @@ export class AsyncOperationsDatabaseHandlerService implements AsyncOperationsHan
               action.actionType,
               JSON.parse(action.actionProps)
             );
+
+            console.log("async handler execution success");
             lastSeq = action.actionId;
             await this.counterRepo.save({
               id: CounterType.ASYNC_OPERATIONS,
@@ -56,7 +58,9 @@ export class AsyncOperationsDatabaseHandlerService implements AsyncOperationsHan
             retryCount = 0; // Reset retry count after a successful execution
           }
         } catch (exception) {
-          this.logger.log("database asyncHandler failed", exception);
+          // this.logger.log("database asyncHandler failed", exception);
+          console.log("database asyncHandler failed console", exception);
+
           if (retryCount >= retryLimit) {
             this.logger.log("database asyncHandler terminated");
             return;
