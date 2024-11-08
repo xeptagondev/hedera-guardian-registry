@@ -1,5 +1,5 @@
 {
-    "heading": "National Carbon<br> Registry",
+    "heading": "Sri Lanka<br> National Carbon<br> Registry",
     "subHeading": "DEMONSTRATION WEBSITE",
     "ourVisonTitle": "Our Vision",
     "ourVisonContentStart": "UNDP has developed an",
@@ -58,8 +58,8 @@
     "faqA7": "The tool is developed and maintained by UNDP and is licensed under the GNU Affero General Public License (AGPL-3.0), which permits free use, modification, and sharing of the software.",
     "faqA7-2": "We kindly ask users to inform us of your usage by contacting <a>digital4planet@undp.org</a> as this helps us track the tool’s impact and guide future improvements.",
     "faqA7-3": "Under AGPL-3.0, any modifications to the code must be made publicly available by creating a new branch on GitHub. The software cannot be relicensed under more restrictive terms without adhering to the AGPL-3.0 guidelines.",
-    "footertext1": "National Carbon Registry: This is a demo. Countries may wish to add a tagline here.",
-    "antarctic": "CountryX",
+    "footertext1": "National Carbon Registry",
+    "antarctic": "Sri Lanka",
     "Cookie": "Cookie Policy",
     "codeconduct": "Code of Conduct",
     "terms": "Terms of Use",
@@ -67,4 +67,3 @@
     "help": "Help",
     "nationalNdc": "NATIONAL NDC"
   }
-  
