@@ -126,6 +126,19 @@ export const getProjectProposalStage = (stage: ProjectProposalStage) => {
   }
 };
 
+export const getDocumentStatusColor = (status: string) => {
+  switch (status) {
+    case 'Accepted':
+      return 'purple';
+    case 'Rejected':
+      return 'error';
+    case 'Pending':
+      return 'processing';
+    default:
+      return 'default';
+  }
+};
+
 export const getCreditTypeVal = (value: string) => {
   const index = Object.keys(CreditTypeSl).indexOf(value);
   if (index < 0) {
@@ -317,6 +330,9 @@ export interface ProgrammeSl {
   district?: string;
   dsDivision?: string;
   province?: string;
+  city?: string;
+  community?: string;
+  projectDescription?: string;
   additionalDocuments?: [];
 }
 
@@ -340,6 +356,7 @@ export interface ProgrammeSlU extends ProgrammeSl {
   emissionReductionExpected: number;
   emissionReductionAchieved: number;
   geographicalLocationCoordinates: any[];
+  documents: any;
 }
 
 export interface ProgrammeU extends Programme {
@@ -402,9 +419,12 @@ export const getGeneralFieldsSl = (programme: ProgrammeSl, system?: CarbonSystem
       safeNumber(programme.creditTransferred),
     creditRetired: programme.creditRetired,
     creditBalance: programme.creditBalance,
-    dsDivision: programme.dsDivision,
-    district: programme.district,
     province: programme.province,
+    district: programme.district,
+    dsDivision: programme.dsDivision,
+    city: programme.city,
+    community: programme.community,
+    projectDescription: programme.projectDescription,
     additionalDocuments: programme.additionalDocuments,
   };
 

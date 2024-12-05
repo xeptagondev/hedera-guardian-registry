@@ -27,6 +27,8 @@ import { DocType } from "../enum/document.type";
 import { CNCertificateIssueDto } from "../dto/cncertificateIssue.dto";
 import { CarbonNeutralCertificateGenerator } from "../util/carbonNeutralCertificate.gen";
 import { CreditRetirementSlService } from "../creditRetirement-sl/creditRetirementSl.service";
+import { ProgrammeAuditLogSl } from "../entities/programmeAuditLogSl.entity";
+import { ProgrammeAuditLogType } from "src/enum/programmeAuditLogType.enum";
 
 @Injectable()
 export class VerificationService {
@@ -47,7 +49,9 @@ export class VerificationService {
     private configService: ConfigService,
     private fileHandler: FileHandlerInterface,
     private carbonNeutralCertificateGenerator: CarbonNeutralCertificateGenerator,
-    private creditRetirementSlService: CreditRetirementSlService
+    private creditRetirementSlService: CreditRetirementSlService,
+    @InjectRepository(ProgrammeAuditLogSl)
+    private programmeAuditSlRepo: Repository<ProgrammeAuditLogSl>
   ) {}
 
   //MARK: create Monitoring Report
@@ -155,6 +159,7 @@ export class VerificationService {
     monitoringReportDocument.createdTime = new Date().getTime();
     monitoringReportDocument.updatedTime = new Date().getTime();
     monitoringReportDocument.content = docContent;
+
     const savedReport = await this.entityManager.transaction(async (em) => {
       const verificationRequests: VerificationRequestEntity[] =
         await this.verificationRequestRepository.find({
@@ -204,6 +209,15 @@ export class VerificationService {
       null,
       monitoringReportDto.programmeId
     );
+
+    if (savedReport) {
+      const log = new ProgrammeAuditLogSl();
+      log.programmeId = monitoringReportDto.programmeId;
+      log.logType = ProgrammeAuditLogType.MONITORING_CREATE;
+      log.userId = user.id;
+
+      await this.programmeAuditSlRepo.save(log);
+    }
 
     return new DataResponseDto(HttpStatus.OK, savedReport);
   }
@@ -277,22 +291,29 @@ export class VerificationService {
         );
         return;
       }
+
+      const log = new ProgrammeAuditLogSl();
+      log.programmeId = verificationRequest.programmeId;
+      log.logType = verifyReportDto.verify ? ProgrammeAuditLogType.MONITORING_APPROVED : ProgrammeAuditLogType.MONITORING_REJECTED;
+      log.userId = user.id;
+
+      await this.programmeAuditSlRepo.save(log);
     });
 
     //send email to Project Participant
-    if (verifyReportDto.verify) {
+    // if (verifyReportDto.verify) {
       await this.emailHelperService.sendEmailToProjectParticipant(
-        EmailTemplates.MONITORING_APPROVED,
+        (verifyReportDto.verify) ? EmailTemplates.MONITORING_APPROVED : EmailTemplates.MONITORING_REJECTED,
         null,
         verificationRequest.programmeId
       );
-    } else {
-      await this.emailHelperService.sendEmailToProjectParticipant(
-        EmailTemplates.MONITORING_REJECTED,
-        null,
-        verificationRequest.programmeId
-      );
-    }
+    // } else {
+    //   await this.emailHelperService.sendEmailToProjectParticipant(
+    //     EmailTemplates.MONITORING_REJECTED,
+    //     null,
+    //     verificationRequest.programmeId
+    //   );
+    // }
   }
 
   //MARK: create Verification Report
@@ -407,6 +428,24 @@ export class VerificationService {
       },
     });
 
+    const programme = await this.programmeSlService.getProjectById(verificationReportDto.programmeId);
+
+    const creditReceived =
+          (Number(programme.creditBalance) || 0) +
+          (Number(programme.creditFrozen) || 0) +
+          (Number(programme.creditRetired) || 0) +
+          (Number(programme.creditTransferred) || 0);
+
+        if ((programme.creditEst - creditReceived) < Number(docContent?.projectDetails?.verifiedScer)) {
+          throw new HttpException(
+            this.helperService.formatReqMessagesString(
+              "verification.cannotIssueMoreThanEstimatedCredits",
+              []
+            ),
+            HttpStatus.BAD_REQUEST
+          );
+        }
+
     const verificationReportDocument = new DocumentEntity();
     verificationReportDocument.userId = user.id;
     verificationReportDocument.companyId = user.companyId;
@@ -463,6 +502,15 @@ export class VerificationService {
       verificationReportDto.programmeId
     );
 
+    if (savedReport) {
+      const log = new ProgrammeAuditLogSl();
+      log.programmeId = verificationReportDto.programmeId;
+      log.logType = ProgrammeAuditLogType.VERIFICATION_CREATE;
+      log.userId = user.id;
+
+      await this.programmeAuditSlRepo.save(log);
+    }
+
     return new DataResponseDto(HttpStatus.OK, savedReport);
   }
 
@@ -493,11 +541,13 @@ export class VerificationService {
     }
 
     let updatedProgramme;
+    let isInitialCreditIssue = false;
     if (verifyReportDto.verify === true) {
       const programme = await this.programmeSlService.getProjectById(
         verificationRequest.programmeId
       );
-
+      
+      isInitialCreditIssue = !programme.creditStartSerialNumber;
       const txRef = this.txRefGen.getCreditIssueApproveRef(user, programme, verificationRequest);
 
       updatedProgramme = await this.programmeLedgerService.issueSlCredits(
@@ -521,7 +571,8 @@ export class VerificationService {
       );
       certificateUrl = await this.getCreditIssuanceCertificateURL(
         verificationRequest,
-        creditIssueCertificateSerial
+        creditIssueCertificateSerial,
+        isInitialCreditIssue
       );
 
       const hostAddress = this.configService.get("host");
@@ -535,6 +586,23 @@ export class VerificationService {
           pageLink: hostAddress + `/programmeManagementSLCF/view/${updatedProgramme.programmeId}`,
         }
       );
+
+      const logs: ProgrammeAuditLogSl[] = [];
+
+      const VerificationApprovedLog = new ProgrammeAuditLogSl();
+      VerificationApprovedLog.programmeId = verificationRequest.programmeId;
+      VerificationApprovedLog.logType = ProgrammeAuditLogType.VERIFICATION_APPROVED;
+      VerificationApprovedLog.userId = user.id;
+      logs.push(VerificationApprovedLog);
+
+      const creditIssueLog = new ProgrammeAuditLogSl();
+      creditIssueLog.programmeId = verificationRequest.programmeId;
+      creditIssueLog.logType = ProgrammeAuditLogType.CREDIT_ISSUED;
+      creditIssueLog.data = {creditIssued: Number(verificationRequest.creditAmount)}
+      creditIssueLog.userId = user.id;
+      logs.push(creditIssueLog);
+
+      await this.programmeAuditSlRepo.save(logs);
     }
 
     await this.entityManager.transaction(async (em) => {
@@ -583,28 +651,21 @@ export class VerificationService {
     });
 
     //send email to Project Participant and SLCF
-    if (verifyReportDto.verify) {
-      await this.emailHelperService.sendEmailToSLCFAdmins(
-        EmailTemplates.VERIFICATION_APPROVED,
-        null,
-        verificationRequest.programmeId
-      );
-      await this.emailHelperService.sendEmailToProjectParticipant(
-        EmailTemplates.VERIFICATION_APPROVED,
-        null,
-        verificationRequest.programmeId
-      );
-    } else {
-      await this.emailHelperService.sendEmailToSLCFAdmins(
-        EmailTemplates.VERIFICATION_REJECTED,
-        null,
-        verificationRequest.programmeId
-      );
-      await this.emailHelperService.sendEmailToProjectParticipant(
-        EmailTemplates.VERIFICATION_REJECTED,
-        null,
-        verificationRequest.programmeId
-      );
+    await this.emailHelperService.sendEmailToSLCFAdmins(
+      verifyReportDto.verify
+        ? EmailTemplates.VERIFICATION_APPROVED
+        : EmailTemplates.VERIFICATION_REJECTED,
+      null,
+      verificationRequest.programmeId
+    );
+
+    if (!verifyReportDto.verify) {
+      const log = new ProgrammeAuditLogSl();
+      log.programmeId = verificationRequest.programmeId;
+      log.logType = ProgrammeAuditLogType.VERIFICATION_REJECTED;
+      log.userId = user.id;
+
+      await this.programmeAuditSlRepo.save(log);
     }
   }
 
@@ -701,7 +762,8 @@ export class VerificationService {
   //MARK: get Credit Issuance Certificate URL
   async getCreditIssuanceCertificateURL(
     verificationRequest: VerificationRequestEntity,
-    verificationSerialNo: string
+    verificationSerialNo: string, 
+    isInitialCreditIssue: boolean
   ) {
     const programme = await this.programmeSlService.getProjectById(verificationRequest.programmeId);
 
@@ -712,15 +774,15 @@ export class VerificationService {
       );
     }
 
-    const blockStart = this.serialGenerator.calculateCreditSerialNumber(
+    const blockStart = isInitialCreditIssue ? programme.creditStartSerialNumber : this.serialGenerator.calculateCreditSerialNumber(
       programme.creditStartSerialNumber,
       programme.creditBalance > 0
-        ? programme.creditBalance - verificationRequest.creditAmount + 1
+        ? programme.creditBalance - verificationRequest.creditAmount
         : 0
     );
     const blockEnd = this.serialGenerator.calculateCreditSerialNumber(
       programme.creditStartSerialNumber,
-      programme.creditBalance
+      programme.creditBalance - 1
     );
 
     const certificateData = {

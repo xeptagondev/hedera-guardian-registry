@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
+/* eslint-disable no-use-before-define */
 import { useState, useEffect } from 'react';
 import {
   Row,
@@ -39,6 +41,9 @@ import {
   SafetyOutlined,
   TransactionOutlined,
   FileOutlined,
+  ReadOutlined,
+  FileDoneOutlined,
+  SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import { DateTime } from 'luxon';
 import Geocoding from '@mapbox/mapbox-sdk/services/geocoding';
@@ -117,6 +122,10 @@ import { HttpStatusCode } from 'axios';
 import { CreditTypeSl } from '../../../Definitions/Enums/creditTypeSl.enum';
 import { FormMode } from '../../../Definitions/Enums/formMode.enum';
 import { VerificationRequestStatusEnum } from '../../../Definitions/Enums/verification.request.status.enum';
+import LabelWithTooltip from '../../LabelWithTooltip/LabelWithTooltip';
+import ProgrammeHistoryStepsComponent from './programmeHistory/programmeHistoryStepComponent';
+import ProgrammeStatusTimelineComponent from './programmeStatusTimeline/programmeStatusTimelineComponent';
+import { OrganisationSlStatus } from '../../OrganisationSlStatus/organisationSlStatus';
 
 const SLCFProjectDetailsViewComponent = (props: any) => {
   const { onNavigateToProgrammeView, translator } = props;
@@ -129,7 +138,11 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
   const [historyData, setHistoryData] = useState<any>([]);
   const [investmentHistory, setInvestmentHistory] = useState<any>([]);
   const [loadingInvestment, setLoadingInvestment] = useState<boolean>(true);
-  const { t, i18n } = useTranslation(['projectDetailsView']);
+  const { t, i18n } = useTranslation([
+    'projectDetailsView',
+    'slcfProgrammeTimeline',
+    'slcfRoadmapTimeline',
+  ]);
   const { t: companyProfileTranslations } = useTranslation(['companyProfile']);
   const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
   const [programmeHistoryLoaded, setProgrammeHistoryLoaded] = useState<boolean>(false);
@@ -155,6 +168,8 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
   const [curentProgrammeStatus, setCurrentProgrammeStatus] = useState<any>('');
   const [verificationHistoryData, setVerificationHistoryData] = useState<any>([]);
   const [verificationHistoryDataLoaded, setVerificationHistoryDataLoaded] = useState(false);
+  const [programmeHistoryLogData, setProgrammeHistoryLogData] = useState<any>([]);
+  const [programmeHistoryLogDataLoaded, setProgrammeHistoryLogDataLoaded] = useState(false);
   const [emissionsReductionExpected, setEmissionsReductionExpected] = useState(0);
   const [emissionsReductionAchieved, setEmissionsReductionAchieved] = useState(0);
   const { id } = useParams();
@@ -924,436 +939,436 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
     programmeHistoryLoaded,
   ]);
 
-  const getProgrammeHistory = async (programmeId: string) => {
-    setLoadingHistory(true);
-    try {
-      const historyPromise = get(`national/programme/getHistory?programmeId=${programmeId}`);
-      const transferPromise = get(
-        `national/programme/transfersByProgrammeId?programmeId=${programmeId}`
-      );
+  // const getProgrammeHistory = async (programmeId: string) => {
+  //   setLoadingHistory(true);
+  //   try {
+  //     const historyPromise = get(`national/programme/getHistory?programmeId=${programmeId}`);
+  //     const transferPromise = get(
+  //       `national/programme/transfersByProgrammeId?programmeId=${programmeId}`
+  //     );
 
-      const [response, transfers] = await Promise.all([historyPromise, transferPromise]);
-      const txDetails: any = {};
-      const txList = await getTxActivityLog(transfers.data, txDetails);
-      let txListKeys = Object.keys(txList).sort();
-      const certifiedTime: any = {};
-      const activityList: any[] = [];
-      for (const activity of response.data) {
-        let programmecreateindex: any;
-        const createIndex = activityList.findIndex(
-          (item) => item.title === t('projectDetailsView:tlCreate')
-        );
-        const upcomCreditIndex = activityList.findIndex(
-          (item) => item.subTitle === t('projectDetailsView:tlPending')
-        );
-        const upcomAuthorisationIndex = activityList.findIndex(
-          (item) => item.title === 'Authorisation'
-        );
-        if (createIndex !== -1) {
-          programmecreateindex = createIndex;
-        }
-        let el = undefined;
-        let newEl = undefined;
-        let creditEl = undefined;
-        let upcomingAuthorisation: any;
-        const day = Math.floor(
-          DateTime.now().diff(DateTime.fromMillis(activity.data.txTime), 'days').days
-        );
-        if (activity.data.txType === TxType.CREATE) {
-          if (day === 1) {
-            upcomingAuthorisation = `Awaiting Action : ${day} Day`;
-          } else {
-            upcomingAuthorisation = `Awaiting Action : ${day} Days`;
-          }
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlCreate'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody text={formatString('projectDetailsView:tlCreateDesc', [])} t={t} />
-            ),
-            icon: (
-              <span className="step-icon created-step">
-                <Icon.CaretRight />
-              </span>
-            ),
-          };
-          newEl = {
-            status: 'process',
-            title: t('projectDetailsView:tlAuthorisation'),
-            subTitle: upcomingAuthorisation,
-            icon: (
-              <span className="step-icon upcom-auth-step">
-                <Icon.ClipboardCheck />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.AUTH) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlAuth'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlAuthDesc', [
-                  addCommSep(activity.data.creditEst),
-                  creditUnit,
-                  DateTime.fromMillis(activity.data.endTime * 1000).toFormat(dateFormat),
-                  activity.data.serialNo,
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon auth-step">
-                <Icon.ClipboardCheck />
-              </span>
-            ),
-          };
-          if (upcomAuthorisationIndex !== -1) {
-            activityList.splice(upcomAuthorisationIndex, 1);
-          }
-        } else if (activity.data.txType === TxType.ISSUE) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlIssue'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString(
-                  'projectDetailsView:tlIssueDesc',
-                  getTxRefValues(activity.data.txRef, 4)
-                    ? [
-                        addNdcDesc({
-                          ndcActions: getTxRefValues(activity.data.txRef, 4),
-                          t: t,
-                          creditUnit: creditUnit,
-                        }),
-                        getTxRefValues(activity.data.txRef, 1),
-                      ]
-                    : [
-                        `${addCommSep(activity.data.creditChange)} ${creditUnit} credits`,
-                        getTxRefValues(activity.data.txRef, 1),
-                      ]
-                )}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon issue-step">
-                <Icon.Award />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.REJECT) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlReject'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlRejectDesc', [
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon reject-step">
-                <Icon.XOctagon />
-              </span>
-            ),
-          };
-          if (upcomAuthorisationIndex !== -1) {
-            activityList.splice(upcomAuthorisationIndex, 1);
-          }
-          if (upcomCreditIndex !== -1) {
-            activityList.splice(upcomCreditIndex, 1);
-          }
-        } else if (activity.data.txType === TxType.TRANSFER) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlTransfer'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlTransferDesc', [
-                  addCommSep(activity.data.creditChange),
-                  creditUnit,
-                  getTxRefValues(activity.data.txRef, 6),
-                  getTxRefValues(activity.data.txRef, 4),
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 9)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon transfer-step">
-                <Icon.BoxArrowRight />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.REVOKE) {
-          const type = getTxRefValues(activity.data.txRef, 4);
-          let revokeComp = undefined;
-          if (type === 'SUSPEND_REVOKE') {
-            revokeComp = getTxRefValues(activity.data.txRef, 5);
-          }
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlRevoke'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlRevokeDesc', [
-                  revokeComp !== undefined ? `due to the deactivation of ${revokeComp}` : '',
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon revoke-step">
-                <Icon.ShieldExclamation />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.CERTIFY) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlCertify'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlCertifyDesc', [
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon cert-step">
-                <Icon.ShieldCheck />
-              </span>
-            ),
-          };
-          const cid = getTxRefValues(activity.data.txRef, 2);
-          if (cid) {
-            certifiedTime[cid] = DateTime.fromMillis(activity.data.txTime).toFormat('dd LLLL yyyy');
-          }
-        } else if (activity.data.txType === TxType.RETIRE) {
-          const reqID = getTxRefValues(activity.data.txRef, 7);
-          const tx = reqID ? txDetails[reqID!] : undefined;
-          const crossCountry = tx ? tx.toCompanyMeta?.countryName : undefined;
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlRetire'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlRetireDesc', [
-                  addCommSep(
-                    tx?.retirementType === RetireType.CROSS_BORDER
-                      ? activity.data.creditChange -
-                          Number(
-                            (
-                              (Number(
-                                getTxRefValues(activity.data.txRef, 10)
-                                  ? getTxRefValues(activity.data.txRef, 10)
-                                  : 0
-                              ) *
-                                activity.data.creditChange) /
-                              100
-                            ).toFixed(2)
-                          )
-                      : activity.data.creditChange
-                  ),
-                  creditUnit,
-                  getTxRefValues(activity.data.txRef, 6),
-                  `${crossCountry ? 'to ' + crossCountry : ''} `,
-                  getRetirementTypeString(tx?.retirementType)?.toLowerCase(),
-                  tx?.retirementType === RetireType.CROSS_BORDER &&
-                  getTxRefValues(activity.data.txRef, 10)
-                    ? formatString('projectDetailsView:t1RetInitOmgeDesc', [
-                        addCommSep(
-                          (
-                            (Number(getTxRefValues(activity.data.txRef, 10)) *
-                              activity.data.creditChange) /
-                            100
-                          ).toFixed(2)
-                        ),
-                      ])
-                    : '',
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 9)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon retire-step">
-                <Icon.Save />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.FREEZE) {
-          let text;
-          if (getTxRefValues(activity.data.txRef, 1)) {
-            text = formatString('projectDetailsView:tlFrozenDesc', [
-              addCommSep(activity.data.creditChange),
-              creditUnit,
-              getTxRefValues(activity.data.txRef, 4),
-              getTxRefValues(activity.data.txRef, 1),
-            ]);
-          } else {
-            text = formatString('projectDetailsView:tlFrozenDescWithoutUser', [
-              addCommSep(activity.data.creditChange),
-              creditUnit,
-              getTxRefValues(activity.data.txRef, 4),
-            ]);
-          }
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlFrozen'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={text}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon freeze-step">
-                <Icon.Stopwatch />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.UNFREEZE) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlUnFrozen'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlUnFrozenDesc', [
-                  addCommSep(activity.data.creditChange),
-                  creditUnit,
-                  getTxRefValues(activity.data.txRef, 4),
-                  getTxRefValues(activity.data.txRef, 1),
-                ])}
-                remark={getTxRefValues(activity.data.txRef, 3)}
-                via={activity.data.userName}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon freeze-step">
-                <Icon.ArrowCounterclockwise />
-              </span>
-            ),
-          };
-        } else if (activity.data.txType === TxType.OWNERSHIP_UPDATE) {
-          el = {
-            status: 'process',
-            title: t('projectDetailsView:tlOwnership'),
-            subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
-            description: (
-              <TimelineBody
-                text={formatString('projectDetailsView:tlOwnershipDesc', [
-                  getTxRefValues(activity.data.txRef, 1),
-                  getTxRefValues(activity.data.txRef, 4) + '%',
-                ])}
-                t={t}
-              />
-            ),
-            icon: (
-              <span className="step-icon issue-step">
-                <Icon.PersonAdd />
-              </span>
-            ),
-          };
-        }
-        if (
-          activity.data.creditEst !== activity.data.creditIssued &&
-          activity.data.txType !== TxType.REJECT
-        ) {
-          creditEl = {
-            status: 'process',
-            title: t('projectDetailsView:tlIssue'),
-            subTitle: t('projectDetailsView:tlPending'),
-            icon: (
-              <span className="step-icon upcom-issue-step">
-                <Icon.Award />
-              </span>
-            ),
-          };
-          activityList.splice(upcomCreditIndex, 1);
-        }
-        if (activity.data.creditEst === activity.data.creditIssued) {
-          if (upcomCreditIndex !== -1) {
-            activityList.splice(upcomCreditIndex, 1);
-          }
-        }
-        if (el) {
-          const toDelete = [];
-          for (const txT of txListKeys) {
-            if (Number(activity.data.txTime) > Number(txT)) {
-              activityList.unshift(...txList[txT]);
-              toDelete.push(txT);
-            } else {
-              break;
-            }
-          }
-          toDelete.forEach((e) => delete txList[e]);
-          txListKeys = Object.keys(txList).sort();
-          activityList.unshift(el);
-        }
-        if (newEl) {
-          const insertIndexauth = Number(programmecreateindex) + 1;
-          activityList.splice(insertIndexauth, 0, newEl);
-        }
-        if (creditEl) {
-          activityList.splice(0, 0, creditEl);
-        }
-      }
+  //     const [response, transfers] = await Promise.all([historyPromise, transferPromise]);
+  //     const txDetails: any = {};
+  //     const txList = await getTxActivityLog(transfers.data, txDetails);
+  //     let txListKeys = Object.keys(txList).sort();
+  //     const certifiedTime: any = {};
+  //     const activityList: any[] = [];
+  //     for (const activity of response.data) {
+  //       let programmecreateindex: any;
+  //       const createIndex = activityList.findIndex(
+  //         (item) => item.title === t('projectDetailsView:tlCreate')
+  //       );
+  //       const upcomCreditIndex = activityList.findIndex(
+  //         (item) => item.subTitle === t('projectDetailsView:tlPending')
+  //       );
+  //       const upcomAuthorisationIndex = activityList.findIndex(
+  //         (item) => item.title === 'Authorisation'
+  //       );
+  //       if (createIndex !== -1) {
+  //         programmecreateindex = createIndex;
+  //       }
+  //       let el = undefined;
+  //       let newEl = undefined;
+  //       let creditEl = undefined;
+  //       let upcomingAuthorisation: any;
+  //       const day = Math.floor(
+  //         DateTime.now().diff(DateTime.fromMillis(activity.data.txTime), 'days').days
+  //       );
+  //       if (activity.data.txType === TxType.CREATE) {
+  //         if (day === 1) {
+  //           upcomingAuthorisation = `Awaiting Action : ${day} Day`;
+  //         } else {
+  //           upcomingAuthorisation = `Awaiting Action : ${day} Days`;
+  //         }
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlCreate'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody text={formatString('projectDetailsView:tlCreateDesc', [])} t={t} />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon created-step">
+  //               <Icon.CaretRight />
+  //             </span>
+  //           ),
+  //         };
+  //         newEl = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlAuthorisation'),
+  //           subTitle: upcomingAuthorisation,
+  //           icon: (
+  //             <span className="step-icon upcom-auth-step">
+  //               <Icon.ClipboardCheck />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.AUTH) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlAuth'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlAuthDesc', [
+  //                 addCommSep(activity.data.creditEst),
+  //                 creditUnit,
+  //                 DateTime.fromMillis(activity.data.endTime * 1000).toFormat(dateFormat),
+  //                 activity.data.serialNo,
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon auth-step">
+  //               <Icon.ClipboardCheck />
+  //             </span>
+  //           ),
+  //         };
+  //         if (upcomAuthorisationIndex !== -1) {
+  //           activityList.splice(upcomAuthorisationIndex, 1);
+  //         }
+  //       } else if (activity.data.txType === TxType.ISSUE) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlIssue'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString(
+  //                 'projectDetailsView:tlIssueDesc',
+  //                 getTxRefValues(activity.data.txRef, 4)
+  //                   ? [
+  //                       addNdcDesc({
+  //                         ndcActions: getTxRefValues(activity.data.txRef, 4),
+  //                         t: t,
+  //                         creditUnit: creditUnit,
+  //                       }),
+  //                       getTxRefValues(activity.data.txRef, 1),
+  //                     ]
+  //                   : [
+  //                       `${addCommSep(activity.data.creditChange)} ${creditUnit} credits`,
+  //                       getTxRefValues(activity.data.txRef, 1),
+  //                     ]
+  //               )}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon issue-step">
+  //               <Icon.Award />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.REJECT) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlReject'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlRejectDesc', [
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon reject-step">
+  //               <Icon.XOctagon />
+  //             </span>
+  //           ),
+  //         };
+  //         if (upcomAuthorisationIndex !== -1) {
+  //           activityList.splice(upcomAuthorisationIndex, 1);
+  //         }
+  //         if (upcomCreditIndex !== -1) {
+  //           activityList.splice(upcomCreditIndex, 1);
+  //         }
+  //       } else if (activity.data.txType === TxType.TRANSFER) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlTransfer'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlTransferDesc', [
+  //                 addCommSep(activity.data.creditChange),
+  //                 creditUnit,
+  //                 getTxRefValues(activity.data.txRef, 6),
+  //                 getTxRefValues(activity.data.txRef, 4),
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 9)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon transfer-step">
+  //               <Icon.BoxArrowRight />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.REVOKE) {
+  //         const type = getTxRefValues(activity.data.txRef, 4);
+  //         let revokeComp = undefined;
+  //         if (type === 'SUSPEND_REVOKE') {
+  //           revokeComp = getTxRefValues(activity.data.txRef, 5);
+  //         }
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlRevoke'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlRevokeDesc', [
+  //                 revokeComp !== undefined ? `due to the deactivation of ${revokeComp}` : '',
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon revoke-step">
+  //               <Icon.ShieldExclamation />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.CERTIFY) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlCertify'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlCertifyDesc', [
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon cert-step">
+  //               <Icon.ShieldCheck />
+  //             </span>
+  //           ),
+  //         };
+  //         const cid = getTxRefValues(activity.data.txRef, 2);
+  //         if (cid) {
+  //           certifiedTime[cid] = DateTime.fromMillis(activity.data.txTime).toFormat('dd LLLL yyyy');
+  //         }
+  //       } else if (activity.data.txType === TxType.RETIRE) {
+  //         const reqID = getTxRefValues(activity.data.txRef, 7);
+  //         const tx = reqID ? txDetails[reqID!] : undefined;
+  //         const crossCountry = tx ? tx.toCompanyMeta?.countryName : undefined;
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlRetire'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlRetireDesc', [
+  //                 addCommSep(
+  //                   tx?.retirementType === RetireType.CROSS_BORDER
+  //                     ? activity.data.creditChange -
+  //                         Number(
+  //                           (
+  //                             (Number(
+  //                               getTxRefValues(activity.data.txRef, 10)
+  //                                 ? getTxRefValues(activity.data.txRef, 10)
+  //                                 : 0
+  //                             ) *
+  //                               activity.data.creditChange) /
+  //                             100
+  //                           ).toFixed(2)
+  //                         )
+  //                     : activity.data.creditChange
+  //                 ),
+  //                 creditUnit,
+  //                 getTxRefValues(activity.data.txRef, 6),
+  //                 `${crossCountry ? 'to ' + crossCountry : ''} `,
+  //                 getRetirementTypeString(tx?.retirementType)?.toLowerCase(),
+  //                 tx?.retirementType === RetireType.CROSS_BORDER &&
+  //                 getTxRefValues(activity.data.txRef, 10)
+  //                   ? formatString('projectDetailsView:t1RetInitOmgeDesc', [
+  //                       addCommSep(
+  //                         (
+  //                           (Number(getTxRefValues(activity.data.txRef, 10)) *
+  //                             activity.data.creditChange) /
+  //                           100
+  //                         ).toFixed(2)
+  //                       ),
+  //                     ])
+  //                   : '',
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 9)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon retire-step">
+  //               <Icon.Save />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.FREEZE) {
+  //         let text;
+  //         if (getTxRefValues(activity.data.txRef, 1)) {
+  //           text = formatString('projectDetailsView:tlFrozenDesc', [
+  //             addCommSep(activity.data.creditChange),
+  //             creditUnit,
+  //             getTxRefValues(activity.data.txRef, 4),
+  //             getTxRefValues(activity.data.txRef, 1),
+  //           ]);
+  //         } else {
+  //           text = formatString('projectDetailsView:tlFrozenDescWithoutUser', [
+  //             addCommSep(activity.data.creditChange),
+  //             creditUnit,
+  //             getTxRefValues(activity.data.txRef, 4),
+  //           ]);
+  //         }
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlFrozen'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={text}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon freeze-step">
+  //               <Icon.Stopwatch />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.UNFREEZE) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlUnFrozen'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlUnFrozenDesc', [
+  //                 addCommSep(activity.data.creditChange),
+  //                 creditUnit,
+  //                 getTxRefValues(activity.data.txRef, 4),
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //               ])}
+  //               remark={getTxRefValues(activity.data.txRef, 3)}
+  //               via={activity.data.userName}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon freeze-step">
+  //               <Icon.ArrowCounterclockwise />
+  //             </span>
+  //           ),
+  //         };
+  //       } else if (activity.data.txType === TxType.OWNERSHIP_UPDATE) {
+  //         el = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlOwnership'),
+  //           subTitle: DateTime.fromMillis(activity.data.txTime).toFormat(dateTimeFormat),
+  //           description: (
+  //             <TimelineBody
+  //               text={formatString('projectDetailsView:tlOwnershipDesc', [
+  //                 getTxRefValues(activity.data.txRef, 1),
+  //                 getTxRefValues(activity.data.txRef, 4) + '%',
+  //               ])}
+  //               t={t}
+  //             />
+  //           ),
+  //           icon: (
+  //             <span className="step-icon issue-step">
+  //               <Icon.PersonAdd />
+  //             </span>
+  //           ),
+  //         };
+  //       }
+  //       if (
+  //         activity.data.creditEst !== activity.data.creditIssued &&
+  //         activity.data.txType !== TxType.REJECT
+  //       ) {
+  //         creditEl = {
+  //           status: 'process',
+  //           title: t('projectDetailsView:tlIssue'),
+  //           subTitle: t('projectDetailsView:tlPending'),
+  //           icon: (
+  //             <span className="step-icon upcom-issue-step">
+  //               <Icon.Award />
+  //             </span>
+  //           ),
+  //         };
+  //         activityList.splice(upcomCreditIndex, 1);
+  //       }
+  //       if (activity.data.creditEst === activity.data.creditIssued) {
+  //         if (upcomCreditIndex !== -1) {
+  //           activityList.splice(upcomCreditIndex, 1);
+  //         }
+  //       }
+  //       if (el) {
+  //         const toDelete = [];
+  //         for (const txT of txListKeys) {
+  //           if (Number(activity.data.txTime) > Number(txT)) {
+  //             activityList.unshift(...txList[txT]);
+  //             toDelete.push(txT);
+  //           } else {
+  //             break;
+  //           }
+  //         }
+  //         toDelete.forEach((e) => delete txList[e]);
+  //         txListKeys = Object.keys(txList).sort();
+  //         activityList.unshift(el);
+  //       }
+  //       if (newEl) {
+  //         const insertIndexauth = Number(programmecreateindex) + 1;
+  //         activityList.splice(insertIndexauth, 0, newEl);
+  //       }
+  //       if (creditEl) {
+  //         activityList.splice(0, 0, creditEl);
+  //       }
+  //     }
 
-      for (const txT of txListKeys) {
-        activityList.unshift(...txList[txT]);
-      }
+  //     for (const txT of txListKeys) {
+  //       activityList.unshift(...txList[txT]);
+  //     }
 
-      setHistoryData(activityList);
-      setProgrammeHistoryLoaded(true);
-      setLoadingHistory(false);
-      setCertTimes(certifiedTime);
-      // genCerts(state.record, certifiedTime);
-    } catch (error: any) {
-      console.log('Error in getting programme', error);
-      message.open({
-        type: 'error',
-        content: error.message,
-        duration: 3,
-        style: { textAlign: 'right', marginRight: 15, marginTop: 10 },
-      });
-      setLoadingHistory(false);
-    }
-    return null;
-  };
+  //     setHistoryData(activityList);
+  //     setProgrammeHistoryLoaded(true);
+  //     setLoadingHistory(false);
+  //     setCertTimes(certifiedTime);
+  //     // genCerts(state.record, certifiedTime);
+  //   } catch (error: any) {
+  //     console.log('Error in getting programme', error);
+  //     message.open({
+  //       type: 'error',
+  //       content: error.message,
+  //       duration: 3,
+  //       style: { textAlign: 'right', marginRight: 15, marginTop: 10 },
+  //     });
+  //     setLoadingHistory(false);
+  //   }
+  //   return null;
+  // };
 
   const updateProgrammeData = (response: any) => {
     setData(response.data);
@@ -1726,6 +1741,37 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
     }
   };
 
+  //MARK: getProgrammeHistory
+  const getProgrammeHistory = async (programmeId: string) => {
+    setLoadingHistory(true);
+    try {
+      const response: any = await get(`national/logs?programmeId=${programmeId}`);
+      if (response && response.data) {
+        // const items = response.data.map((log: any) => ({
+        //   title: log.logType.replace(/_/g, ' '), // Convert logType to a readable title
+        //   description: log.data
+        //     ? Object.entries(log.data)
+        //         .map(([key, value]) => `${key}: ${value}`)
+        //         .join(', ')
+        //     : 'No additional details', // Handle cases where data is null
+        // }));
+        setProgrammeHistoryLogData(response.data);
+        setProgrammeHistoryLogDataLoaded(true);
+        console.log(response);
+      }
+    } catch (error: any) {
+      console.log('Error in getting programme history logs', error);
+      message.open({
+        type: 'error',
+        content: error.message,
+        duration: 3,
+        style: { textAlign: 'right', marginRight: 15, marginTop: 10 },
+      });
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
   useEffect(() => {
     if (data) {
       setProgrammeOwnerId(data?.companyId);
@@ -1752,27 +1798,41 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
     return (
       <div className="">
         <div className="company-info">
-          {isBase64(ele.company.logo) ? (
-            <img alt="company logo" src={'data:image/jpeg;base64,' + ele.company.logo} />
-          ) : ele.company.logo ? (
-            <img alt="company logo" src={ele.company.logo} />
-          ) : ele.company.name ? (
-            <div className="programme-logo">{ele.company.name.charAt(0).toUpperCase()}</div>
-          ) : (
-            <div className="programme-logo">{'A'}</div>
-          )}
-          <div className="text-center programme-name">{ele.company.name}</div>
-          <div className="progress-bar">
-            <div>
-              <div className="float-left">{t('projectDetailsView:ownership')}</div>
-              <div className="float-right">{ele.percentage}%</div>
-            </div>
-            <Progress percent={ele.percentage} strokeWidth={7} status="active" showInfo={false} />
-          </div>
-          <OrganisationStatus
-            organisationStatus={parseInt(ele.company.state)}
-            t={companyProfileTranslations}
-          ></OrganisationStatus>
+          <Row className="row" justify={'space-between'}>
+            <Col xl={6} md={6}>
+              {isBase64(ele.company.logo) ? (
+                <img alt="company logo" src={'data:image/jpeg;base64,' + ele.company.logo} />
+              ) : ele.company.logo ? (
+                <img alt="company logo" src={ele.company.logo} />
+              ) : ele.company.name ? (
+                <div className="programme-logo">{ele.company.name.charAt(0).toUpperCase()}</div>
+              ) : (
+                <div className="programme-logo">{'A'}</div>
+              )}
+            </Col>
+            <Col xl={18} md={18}>
+              <div className="text-left programme-name">
+                {ele.company.name}
+
+                <OrganisationSlStatus
+                  organisationStatus={parseInt(ele.company.state)}
+                  t={companyProfileTranslations}
+                ></OrganisationSlStatus>
+              </div>
+              <div className="progress-bar">
+                <Progress
+                  percent={ele.percentage}
+                  strokeWidth={7}
+                  status="active"
+                  showInfo={false}
+                />
+                <div>
+                  <div className="float-left">{t('projectDetailsView:ownership')}</div>
+                  <div className="float-right">{ele.percentage}%</div>
+                </div>
+              </div>
+            </Col>
+          </Row>
         </div>
       </div>
     );
@@ -1938,6 +1998,19 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
             <span>{v as string}</span>
           </span>
         );
+      } else if (k === 'projectDescription') {
+        const isShowTooltip = (v as string).length > 40;
+        generalInfo[text] = isShowTooltip ? (
+          <span>
+            <Tooltip placement="topLeft" title={v}>
+              <span className="ellipsis">{v as string}</span>
+            </Tooltip>
+          </span>
+        ) : (
+          <span>
+            <span>{v as string}</span>
+          </span>
+        );
       } else if (k === 'additionalDocuments') {
         generalInfo[text] = (
           <span>
@@ -1972,7 +2045,7 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
   return loadingAll ? (
     <Loading />
   ) : (
-    <div className="content-container programme-view">
+    <div className="content-container programme-sl-view">
       <div className="title-bar">
         <div>
           <div className="body-title">{t('projectDetailsView:details')}</div>
@@ -1985,24 +2058,44 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
         </div>
       </div>
       <div className="content-body">
+        <Row className="programme-status-timeline">
+          <Card className="card-container">
+            <div className="info-view">
+              <ProgrammeStatusTimelineComponent
+                programmeDetails={data}
+                translator={t}
+              ></ProgrammeStatusTimelineComponent>
+            </div>
+          </Card>
+        </Row>
         <Row gutter={16}>
           <Col md={24} lg={10}>
             <Card className="card-container">
-              <div className="info-view">
-                <div className="title">
-                  <span className="title-icon">
-                    {
-                      <span className="b-icon">
-                        <Icon.Building />
-                      </span>
-                    }
-                  </span>
-                  <span className="title-text">{t('projectDetailsView:programmeOwner')}</span>
-                </div>
-                <div className="centered-card">{elements}</div>
+              <div>
+                <ProjectForms
+                  data={documentsData}
+                  projectFormsTitle={t('projectDetailsView:projectProposalFormsTitle')}
+                  validationFormsTitle={t('projectDetailsView:validationFormsTitle')}
+                  cmaFormsTitle={t('projectDetailsView:cmaFormsTitle')}
+                  icon={<QrcodeOutlined />}
+                  projectProposalIcon={<ReadOutlined />}
+                  cmaIcon={<FileDoneOutlined />}
+                  validationIcon={<SafetyCertificateOutlined />}
+                  programmeId={data?.programmeId}
+                  programmeOwnerId={programmeOwnerId}
+                  getDocumentDetails={() => {
+                    getDocuments(data?.programmeId);
+                  }}
+                  getProgrammeById={() => {
+                    getProgrammeById();
+                  }}
+                  ministryLevelPermission={ministryLevelPermission}
+                  translator={i18n}
+                  projectProposalStage={data?.projectProposalStage}
+                  programmeDetails={data}
+                />
               </div>
             </Card>
-
             <Card className="card-container">
               <div className="info-view">
                 <div className="title">
@@ -2191,7 +2284,6 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
                 </div>
               </div>
             </Card>
-
             {data?.programmeProperties?.programmeMaterials &&
               data?.programmeProperties?.programmeMaterials.length > 0 && (
                 <Card className="card-container">
@@ -2231,29 +2323,23 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
                 />
               </div>
             </Card>
-            <Card className="card-container">
-              <div>
-                <ProjectForms
-                  data={documentsData}
-                  title={t('projectDetailsView:programmeForms')}
-                  icon={<QrcodeOutlined />}
-                  programmeId={data?.programmeId}
-                  programmeOwnerId={programmeOwnerId}
-                  getDocumentDetails={() => {
-                    getDocuments(data?.programmeId);
-                  }}
-                  getProgrammeById={() => {
-                    getProgrammeById();
-                  }}
-                  ministryLevelPermission={ministryLevelPermission}
-                  translator={i18n}
-                  projectProposalStage={data?.projectProposalStage}
-                  programmeDetails={data}
-                />
-              </div>
-            </Card>
           </Col>
           <Col md={24} lg={14}>
+            <Card className="card-container">
+              <div className="info-view ">
+                <div className="title">
+                  <span className="title-icon">
+                    {
+                      <span className="b-icon">
+                        <Icon.Building />
+                      </span>
+                    }
+                  </span>
+                  <span className="title-text">{t('projectDetailsView:programmeOwner')}</span>
+                </div>
+                <div className="centered-card">{elements}</div>
+              </div>
+            </Card>
             <Card className="card-container">
               <div>
                 <InfoView
@@ -2310,6 +2396,28 @@ const SLCFProjectDetailsViewComponent = (props: any) => {
                     translator={i18n}
                     projectProposalStage={data?.projectProposalStage}
                   />
+                </div>
+              </Card>
+            )}
+            {programmeHistoryLogData && programmeHistoryLogData.length > 0 && (
+              <Card className="card-container">
+                <div className="info-view">
+                  <div className="title">
+                    <span className="title-icon">{<ClockCircleOutlined />}</span>
+                    <span className="title-text">{t('view:timeline')}</span>
+                  </div>
+                  <div className="content">
+                    {loadingHistory ? (
+                      <Skeleton />
+                    ) : (
+                      <div className="programme-timeline-container">
+                        <ProgrammeHistoryStepsComponent
+                          historyData={programmeHistoryLogData}
+                          translator={t}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Card>
             )}

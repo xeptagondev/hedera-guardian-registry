@@ -167,6 +167,7 @@ const SiteCheckListComponent = (props: { translator: i18n }) => {
       doc8TrainingRecordsAvailability: vals?.doc8TrainingRecordsAvailability,
       doc8TrainingRecordsComment: vals?.doc8TrainingRecordsComment,
       doc9InternalAuditReportsAvailability: vals?.doc9InternalAuditReportsAvailability,
+      doc9InternalAuditReportsComment: vals?.doc9InternalAuditReportsComment,
       stakeholderName: firstStakeholder?.stakeholderName,
       contactDetails: firstStakeholder?.stakeholderContactNo,
       designation: firstStakeholder?.stakeholderDesignation,
@@ -593,6 +594,10 @@ const SiteCheckListComponent = (props: { translator: i18n }) => {
 
                         if (isNaN(value)) {
                           throw new Error(`Should be a number!`);
+                        }
+
+                        if (Number(value) > 100) {
+                          throw new Error(`Cannot exceed 100%`);
                         }
                       },
                     },

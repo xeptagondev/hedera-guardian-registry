@@ -4,7 +4,7 @@
   "emissions" : "Emissions",
   "projections" : "Projections",
   "slcfprogrammes": "SLCF Projects",
-  "programmes": "Article 6 Projects",
+  "programmes": "Article 6.4 Projects",
   "transfers": "Transfers",
   "companies": "Organisations",
   "users": "Users",
@@ -17,5 +17,7 @@
   "support": "Financing",
   "nationalAccounting": "National Accounting",
   "retirements": "Retirements",
-  "settings": "Settings"
+  "settings": "Settings",
+  "verra": "Verra Projects",
+  "projectList": "Projects"
 }

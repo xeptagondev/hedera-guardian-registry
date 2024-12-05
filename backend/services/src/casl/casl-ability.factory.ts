@@ -300,6 +300,24 @@ export class CaslAbilityFactory {
       cannot(Action.Read, CreditAuditLogViewEntity);
     }
 
+    if (user.companyRole === CompanyRole.GOVERNMENT) {
+      can(Action.Read, ProgrammeSl);
+      can(Action.Read, DocumentEntity);
+      can(Action.Read, VerificationRequestEntity);
+    }
+
+    if (user.companyRole === CompanyRole.MINISTRY) {
+      can(Action.Read, ProgrammeSl);
+      can(Action.Read, DocumentEntity);
+      can(Action.Read, VerificationRequestEntity);
+    }
+
+    if (user.companyRole === CompanyRole.CERTIFIER) {
+      can(Action.Read, ProgrammeSl);
+      can(Action.Read, DocumentEntity);
+      can(Action.Read, VerificationRequestEntity);
+    }
+
     if (user.companyRole === CompanyRole.PROGRAMME_DEVELOPER) {
       can(Action.Read, ProgrammeSl);
       can(Action.Read, DocumentEntity);
@@ -367,6 +385,22 @@ export class CaslAbilityFactory {
     }
 
     if (user.companyRole === CompanyRole.GOVERNMENT) {
+      can(Action.Read, User);
+      can(Action.Read, ProgrammeSl);
+      can(Action.Read, CreditRetirementSl);
+      can(Action.Read, DocumentEntity);
+      can(Action.Read, VerificationRequestEntity);
+    }
+
+    if (user.companyRole === CompanyRole.CERTIFIER) {
+      can(Action.Read, User);
+      can(Action.Read, ProgrammeSl);
+      can(Action.Read, CreditRetirementSl);
+      can(Action.Read, DocumentEntity);
+      can(Action.Read, VerificationRequestEntity);
+    }
+
+    if (user.companyRole === CompanyRole.MINISTRY) {
       can(Action.Read, User);
       can(Action.Read, ProgrammeSl);
       can(Action.Read, CreditRetirementSl);

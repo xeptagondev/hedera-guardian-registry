@@ -84,11 +84,7 @@
         padding-left: 15px;
         font-weight: 500;
       }
-
-
     }
-
-    
 
     .field-verification-title {
       margin: 15px 0px;
@@ -108,4 +104,67 @@
       padding-left: 10px;
     }
   }
+  .ant-btn-sm {
+    height: 25px;
+    width: 80px;
+  }
+
+  // .ant-btn span {
+  //   text-transform: none;
+  //   color: rgba(58, 53, 65, 0.6);  
+  // }
+
+  // .ant-btn-dangerous span {
+  //   text-transform: none;
+  //   color: #ff7875;  
+  // }
+
+  // .ant-btn:hover span {
+  //   text-transform: none;
+  //   color: #40a9ff;  
+  // }
+
+  // .ant-btn-dangerous:hover span {
+  //   text-transform: none;
+  //   color: #ff7875;  
+  // }
+
+  .anticon-check-circle {
+    margin-top: 6.5px;
+    margin-left: 30px;
+  }
+
+  // .btnProjectForms {
+  //   height: 25px;
+  //   width: 80px;
+  // }
+
+  .btnProjectForms:not(:disabled) span {
+    text-transform: none;
+    color: #40a9ff;
+  }
+
+  .ant-btn-sm:disabled span {
+    text-transform: none;
+    color: rgba(58, 53, 65, 0.6) !important;
+  }
+
+  .btnProjectForms:not(:disabled) {
+    border-color: #40a9ff;
+  }
+
+  .btnDangerProjectForms span {
+    text-transform: none;
+    color: #ff7875;  
+  }
+
+  .btnDangerProjectForms:hover span {
+    text-transform: none;
+    color: #ff7875;  
+  }
+  
+  .time {
+    color: rgba(58, 53, 65, 0.3)
+  }
+
 }
