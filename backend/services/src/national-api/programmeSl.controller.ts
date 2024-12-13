@@ -46,8 +46,8 @@ export class ProgrammeSlController {
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, ProgrammeSl))
   @Post("inf/reject")
-  async rejectINF(@Body("programmeId") programmeId: string, @Request() req) {
-    return this.programmeService.rejectINF(programmeId, req.user);
+  async rejectINF(@Body("programmeId") programmeId: string, @Body("remark") remark: string, @Request() req) {
+    return this.programmeService.rejectINF(programmeId, remark, req.user);
   }
 
   @ApiBearerAuth()
@@ -89,8 +89,8 @@ export class ProgrammeSlController {
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, ProgrammeSl))
   @Post("proposal/reject")
-  async rejectProposal(@Body("programmeId") programmeId: string, @Request() req) {
-    return this.programmeService.rejectProposal(programmeId, req.user);
+  async rejectProposal(@Body("programmeId") programmeId: string, @Body("remark") remark: string, @Request() req) {
+    return this.programmeService.rejectProposal(programmeId, remark, req.user);
   }
 
   @ApiBearerAuth()
@@ -113,8 +113,8 @@ export class ProgrammeSlController {
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, ProgrammeSl))
   @Post("cma/reject")
-  async rejectCMA(@Body("programmeId") programmeId: string, @Request() req) {
-    return this.programmeService.rejectCMA(programmeId, req.user);
+  async rejectCMA(@Body("programmeId") programmeId: string, @Body("remark") remark: string, @Request() req) {
+    return this.programmeService.rejectCMA(programmeId, remark, req.user);
   }
 
   @ApiBearerAuth()
@@ -137,8 +137,8 @@ export class ProgrammeSlController {
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Update, ProgrammeSl))
   @Post("validation/reject")
-  async rejectValidation(@Body("programmeId") programmeId: string, @Request() req) {
-    return this.programmeService.rejectValidation(programmeId, req.user);
+  async rejectValidation(@Body("programmeId") programmeId: string, @Body("remark") remark: string, @Request() req) {
+    return this.programmeService.rejectValidation(programmeId, remark, req.user);
   }
 
   @ApiBearerAuth()
@@ -160,6 +160,14 @@ export class ProgrammeSlController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, DocumentEntity))
+  @Post("getVerificationDocVersions")
+  async getVerificationDocVersions(@Body() getDocDto: GetDocDto, @Request() req) {
+    return this.programmeService.getVerificationDocVersions(getDocDto, req.user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, DocumentEntity))
   @Post("getDocByVersion")
   async getDocByVersion(@Body() getDocDto: GetDocDto, @Request() req) {
     return this.programmeService.getDocByVersion(getDocDto, req.user);
@@ -168,9 +176,25 @@ export class ProgrammeSlController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, DocumentEntity))
+  @Post("getVerificationDocByVersion")
+  async getVerificationDocByVersion(@Body() getDocDto: GetDocDto, @Request() req) {
+    return this.programmeService.getVerificationDocByVersion(getDocDto, req.user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, DocumentEntity))
   @Post("getDocLastVersion")
   async getDocLastVersion(@Body() getDocDto: GetDocDto, @Request() req) {
     return this.programmeService.getDocLastVersion(getDocDto, req.user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PoliciesGuard)
+  @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, DocumentEntity))
+  @Post("getVerificationDocLastVersion")
+  async getVerificationDocLastVersion(@Body() getDocDto: GetDocDto, @Request() req) {
+    return this.programmeService.getVerificationDocLastVersion(getDocDto, req.user);
   }
 
   @ApiBearerAuth()

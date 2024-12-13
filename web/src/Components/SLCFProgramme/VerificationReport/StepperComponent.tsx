@@ -19,12 +19,15 @@ import {
   fileUploadValueExtract,
 } from '../../../Utils/utilityHelper';
 import { VerificationRequestStatusEnum } from '../../../Definitions/Enums/verification.request.status.enum';
+import { PopupInfo } from '../../../Definitions/Definitions/ndcDetails.definitions';
+import { SlcfFormActionModel } from '../../Models/SlcfFormActionModel';
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 const StepperComponent = (props: any) => {
-  const { useLocation, translator, countries } = props;
+  const { useLocation, translator, countries, selectedVersion, handleDocumentStatus } = props;
   const navigationLocation = useLocation();
   const { mode, docId } = navigationLocation.state || {};
   const navigate = useNavigate();
-  const [verificationRequestId, setVerificationRequestId] = useState(0);
+  // const [verificationRequestId, setVerificationRequestId] = useState(0);
   const [reportId, setReportId] = useState(0);
   const [status, setStatus] = useState(null);
   const [current, setCurrent] = useState(0);
@@ -32,11 +35,15 @@ const StepperComponent = (props: any) => {
 
   const [formValues, setFormValues] = useState({});
   const { get, post } = useConnection();
-  const { id } = useParams();
+  const { id, verificationRequestId } = useParams();
   const t = translator.t;
   const reportVersion = process.env.VERIFICATION_REPORT_VERSION
     ? process.env.VERIFICATION_REPORT_VERSION
     : 'Version 03';
+
+  const [popupInfo, setPopupInfo] = useState<PopupInfo>();
+  const [slcfActionModalVisible, setSlcfActioModalVisible] = useState<boolean>(false);
+
   const onValueChange = (newValues: any) => {
     setFormValues((prevValues) => ({
       ...prevValues,
@@ -45,15 +52,21 @@ const StepperComponent = (props: any) => {
     console.log(JSON.stringify(formValues));
   };
 
+  const showModalOnAction = (info: PopupInfo) => {
+    setSlcfActioModalVisible(true);
+    setPopupInfo(info);
+  };
+
   const navigateToDetailsPage = () => {
     navigate(`/programmeManagementSLCF/view/${id}`);
   };
 
-  const approve = async (verify: boolean) => {
+  const approveOrReject = async (verify: boolean, remark?: string) => {
     const body = {
       verify: verify,
-      verificationRequestId: verificationRequestId,
+      verificationRequestId: Number(verificationRequestId),
       reportId: reportId,
+      remark,
     };
     try {
       const res = await post('national/verification/verifyVerificationReport', body);
@@ -241,14 +254,33 @@ const StepperComponent = (props: any) => {
 
   const getLatestReports = async (programId: any) => {
     try {
-      if (docId) {
-        const { data } = await post('national/programmeSl/getDocumentById', {
-          docId: docId,
-        });
+      // if (docId) {
+      //   const { data } = await post('national/programmeSl/getDocumentById', {
+      //     docId: docId,
+      //   });
+      if (mode === FormMode.VIEW || mode === FormMode.EDIT) {
+        const { data } =
+          mode === FormMode.VIEW && selectedVersion
+            ? await post('national/programmeSl/getVerificationDocByVersion', {
+                programmeId: id,
+                docType: DocumentTypeEnum.VERIFICATION_REPORT,
+                version: selectedVersion,
+                verificationRequestId: Number(verificationRequestId),
+              })
+            : await post('national/programmeSl/getVerificationDocLastVersion', {
+                programmeId: id,
+                docType: DocumentTypeEnum.VERIFICATION_REPORT,
+                verificationRequestId: Number(verificationRequestId),
+              });
+
+        if (mode === FormMode.VIEW) {
+          handleDocumentStatus(data.status);
+        }
+
         if (data && data?.content) {
           setReportId(data?.id);
           setStatus(data?.status);
-          setVerificationRequestId(data?.verificationRequestId);
+          // setVerificationRequestId(data?.verificationRequestId);
           const content = data?.content;
           projectDetailsForm.setFieldsValue({
             ...content?.projectDetails,
@@ -386,7 +418,7 @@ const StepperComponent = (props: any) => {
   useEffect(() => {
     getLatestReports(id);
     getProjectById(id);
-  }, []);
+  }, [selectedVersion]);
 
   const steps = [
     {
@@ -530,10 +562,28 @@ const StepperComponent = (props: any) => {
           prev={prev}
           cancel={navigateToDetailsPage}
           approve={() => {
-            approve(true);
+            showModalOnAction({
+              actionBtnText: t('verificationReport:btnApprove'),
+              icon: <CheckCircleOutlined />,
+              title: t('verificationReport:approveVerificationModalTitle'),
+              okAction: () => {
+                approveOrReject(true);
+              },
+              remarkRequired: false,
+              type: 'primary',
+            });
           }}
           reject={() => {
-            approve(false);
+            showModalOnAction({
+              actionBtnText: t('verificationReport:btnReject'),
+              icon: <CloseCircleOutlined />,
+              title: t('verificationReport:rejectVerificationModalTitle'),
+              okAction: (remark: string) => {
+                approveOrReject(false, remark);
+              },
+              remarkRequired: true,
+              type: 'danger',
+            });
           }}
           onFinish={onFinish}
         />
@@ -552,6 +602,22 @@ const StepperComponent = (props: any) => {
           description: step.description,
         }))}
       />
+      {popupInfo && (
+        <SlcfFormActionModel
+          onCancel={() => {
+            setSlcfActioModalVisible(false);
+          }}
+          actionBtnText={popupInfo!.actionBtnText}
+          onFinish={popupInfo!.okAction}
+          subText={''}
+          openModal={slcfActionModalVisible}
+          icon={popupInfo!.icon}
+          title={popupInfo!.title}
+          type={popupInfo!.type}
+          remarkRequired={popupInfo!.remarkRequired}
+          translator={translator}
+        />
+      )}
     </>
   );
 };

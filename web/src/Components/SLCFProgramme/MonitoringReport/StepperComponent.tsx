@@ -7,7 +7,7 @@ import { ImplementationStatusStep } from './ImplementationStatusStep';
 import { SafeguardsStep } from './SafeguardsStep';
 import { DataAndParametersStep } from './DataAndParametersStep';
 import { QualificationStep } from './QuantificationStep';
-import { AnnexuresStep } from './AnnexuresStep';
+import { AnnexureStep } from './AnnexureStep';
 import { useForm } from 'antd/lib/form/Form';
 import { useConnection } from '../../../Context/ConnectionContext/connectionContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -19,15 +19,19 @@ import {
   fileUploadValueExtract,
 } from '../../../Utils/utilityHelper';
 import { VerificationRequestStatusEnum } from '../../../Definitions/Enums/verification.request.status.enum';
+import { SlcfFormActionModel } from '../../Models/SlcfFormActionModel';
+import { PopupInfo } from '../../../Definitions/Definitions/ndcDetails.definitions';
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 const StepperComponent = (props: any) => {
   const navigate = useNavigate();
-  const { useLocation, translator, countries } = props;
+  const { useLocation, translator, countries, selectedVersion, handleDocumentStatus } = props;
   const [current, setCurrent] = useState(0);
-  const [verificationRequestId, setVerificationRequestId] = useState(0);
+  // const [verificationRequestId, setVerificationRequestId] = useState(0);
   const [reportId, setReportId] = useState(0);
+  const [status, setStatus] = useState(null);
   const [formValues, setFormValues] = useState({});
   const { get, post } = useConnection();
-  const { id } = useParams();
+  const { id, verificationRequestId } = useParams();
   const navigationLocation = useLocation();
   const [projectCategory, setProjectCategory] = useState<string>('');
   const { mode, docId } = navigationLocation.state || {};
@@ -35,22 +39,31 @@ const StepperComponent = (props: any) => {
   const reportVersion = process.env.MONITORING_REPORT_VERSION
     ? process.env.MONITORING_REPORT_VERSION
     : 'Version 03';
+  const [popupInfo, setPopupInfo] = useState<PopupInfo>();
+  const [slcfActionModalVisible, setSlcfActioModalVisible] = useState<boolean>(false);
+
   const onValueChange = (newValues: any) => {
     setFormValues((prevValues) => ({
       ...prevValues,
       ...newValues,
     }));
-    console.log(JSON.stringify(formValues));
   };
 
   const navigateToDetailsPage = () => {
     navigate(`/programmeManagementSLCF/view/${id}`);
   };
-  const approve = async (verify: boolean) => {
+
+  const showModalOnAction = (info: PopupInfo) => {
+    setSlcfActioModalVisible(true);
+    setPopupInfo(info);
+  };
+
+  const approveOrReject = async (verify: boolean, remark?: string) => {
     const body = {
       verify: verify,
-      verificationRequestId: verificationRequestId,
+      verificationRequestId: Number(verificationRequestId),
       reportId: reportId,
+      remark,
     };
     try {
       const res = await post('national/verification/verifyMonitoringReport', body);
@@ -245,7 +258,8 @@ const StepperComponent = (props: any) => {
     }
 
     try {
-      if (docId === null) {
+      // if (docId === null) {
+      if (mode === FormMode.CREATE) {
         projectActivityForm.setFieldsValue({
           projectProponentsList: [
             {
@@ -284,13 +298,33 @@ const StepperComponent = (props: any) => {
             },
           ],
         });
-      } else {
-        const { data } = await post('national/programmeSl/getDocumentById', {
-          docId: docId,
-        });
+      } else if (mode === FormMode.VIEW || mode === FormMode.EDIT) {
+        // const { data } = await post('national/programmeSl/getDocumentById', {
+        //   docId: docId,
+        // });
+
+        const { data } =
+          mode === FormMode.VIEW && selectedVersion
+            ? await post('national/programmeSl/getVerificationDocByVersion', {
+                programmeId: id,
+                docType: DocumentTypeEnum.MONITORING_REPORT,
+                version: selectedVersion,
+                verificationRequestId: Number(verificationRequestId),
+              })
+            : await post('national/programmeSl/getVerificationDocLastVersion', {
+                programmeId: id,
+                docType: DocumentTypeEnum.MONITORING_REPORT,
+                verificationRequestId: Number(verificationRequestId),
+              });
+
+        if (mode === FormMode.VIEW) {
+          console.log('form data', data.status, selectedVersion);
+          handleDocumentStatus(data.status);
+        }
         if (data && data?.content) {
           setReportId(data?.id);
-          setVerificationRequestId(data?.verificationRequestId);
+          setStatus(data?.status);
+          // setVerificationRequestId(data?.verificationRequestId);
           projectDetailsForm.setFieldsValue({
             ...data?.content?.projectDetails,
             dateOfIssue: moment(data?.content?.projectDetails?.dateOfIssue),
@@ -379,7 +413,7 @@ const StepperComponent = (props: any) => {
   useEffect(() => {
     getLatestReports(id);
     getProgrammeDetailsById();
-  }, []);
+  }, [selectedVersion]);
 
   useEffect(() => {
     // loadProjectDetails();
@@ -517,19 +551,38 @@ const StepperComponent = (props: any) => {
         </div>
       ),
       description: (
-        <AnnexuresStep
+        <AnnexureStep
           useLocation={useLocation}
           translator={translator}
           current={current}
+          status={status}
           form={annexuresForm}
           formMode={mode}
           prev={prev}
           cancel={navigateToDetailsPage}
           approve={() => {
-            approve(true);
+            showModalOnAction({
+              actionBtnText: t('monitoringReport:btnApprove'),
+              icon: <CheckCircleOutlined />,
+              title: t('monitoringReport:approveMonitoringModalTitle'),
+              okAction: () => {
+                approveOrReject(true);
+              },
+              remarkRequired: false,
+              type: 'primary',
+            });
           }}
           reject={() => {
-            approve(false);
+            showModalOnAction({
+              actionBtnText: t('monitoringReport:btnReject'),
+              icon: <CloseCircleOutlined />,
+              title: t('monitoringReport:rejectMonitoringModalTitle'),
+              okAction: (remark: string) => {
+                approveOrReject(false, remark);
+              },
+              remarkRequired: true,
+              type: 'danger',
+            });
           }}
           onFinish={onFinish}
         />
@@ -548,6 +601,22 @@ const StepperComponent = (props: any) => {
           description: step.description,
         }))}
       />
+      {popupInfo && (
+        <SlcfFormActionModel
+          onCancel={() => {
+            setSlcfActioModalVisible(false);
+          }}
+          actionBtnText={popupInfo!.actionBtnText}
+          onFinish={popupInfo!.okAction}
+          subText={''}
+          openModal={slcfActionModalVisible}
+          icon={popupInfo!.icon}
+          title={popupInfo!.title}
+          type={popupInfo!.type}
+          remarkRequired={popupInfo!.remarkRequired}
+          translator={translator}
+        />
+      )}
     </>
   );
 };

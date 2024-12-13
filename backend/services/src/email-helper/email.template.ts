@@ -171,7 +171,8 @@ export const EmailTemplates = {
     html: `
         Hi {{name}}, <br><br>
 
-        Initial notification submitted by your {{organisationName}} organisation has been rejected by Sri Lanka Climate Fund. <br><br>
+        Initial notification submitted by your {{organisationName}} organisation has been rejected by Sri Lanka Climate Fund due to the following reason/s:<br>
+        {{remark}} <br><br>
 
         Please submit a new notification request.
         <br><br>
@@ -216,7 +217,9 @@ export const EmailTemplates = {
     html: `
         Hi {{name}}, <br><br>
 
-        Cost Quotation Form, Proposal Form and Validation Agreement submitted by Sri Lanka Climate Fund for the project {{programmeName}} owned by {{organisationName}} have been rejected by {{organisationName}}. <br><br>
+        Cost Quotation Form, Proposal Form and Validation Agreement submitted by Sri Lanka Climate Fund for the project {{programmeName}} owned by {{organisationName}} have been rejected by {{organisationName}} due to the following reason/s:<br>
+        {{remark}}<br><br>
+
 
         Click <a href="{{programmePageLink}}">here</a> for more details of the project.
         <br><br>
@@ -261,7 +264,8 @@ export const EmailTemplates = {
     html: `
         Hi {{name}}, <br><br>
 
-        Carbon Management Assessment submitted for the project {{programmeName}} by your {{organisationName}} organisation has been rejected by Sri Lanka Climate Fund. <br><br>
+        Carbon Management Assessment submitted for the project {{programmeName}} by your {{organisationName}} organisation has been rejected by Sri Lanka Climate Fund due to the following reason/s:<br>
+        {{remark}} <br><br>
 
         Please re-submit the Carbon Management Assessment form by clicking <a href="{{programmePageLink}}">here</a>.
         <br><br>
@@ -310,9 +314,10 @@ export const EmailTemplates = {
     html: `
         Hi {{name}}, <br><br>
 
-        Validation report submitted for the project {{programmeName}} owned by {{organisationName}} organisation has been rejected by Executive Board of Sri Lanka Climate Fund. <br><br>
+        Validation report submitted for the project {{programmeName}} owned by {{organisationName}} organisation has been rejected by Executive Board of Sri Lanka Climate Fund due to the following reason/s:<br>
+        {{remark}} <br><br>
 
-        Please re-submit again by clicking <a href="{{programmePageLink}}">here</a>.
+        Please submit again by clicking <a href="{{programmePageLink}}">here</a>.
         <br><br>
 
         Sincerely,  <br>
@@ -355,9 +360,10 @@ export const EmailTemplates = {
     html: `
         Hi {{name}}, <br><br>
 
-        Monitoring Report submitted for the project {{programmeName}} by your {{organisationName}} organisation has been rejected by Sri Lanka Climate Fund. <br><br>
+        Monitoring Report submitted for the project {{programmeName}} by your {{organisationName}} organisation has been rejected by Sri Lanka Climate Fund due to the following reason/s:<br>
+        {{remark}} <br><br>
 
-        Please re-submit again by clicking <a href="{{programmePageLink}}">here</a>.
+        Please submit again by clicking <a href="{{programmePageLink}}">here</a>.
         <br><br>
 
         Sincerely,  <br>
@@ -400,9 +406,10 @@ export const EmailTemplates = {
     html: `
         Hi {{name}}, <br><br>
 
-        Verification Report submitted for the project {{programmeName}} by the Sri Lanka Climate Fund has been rejected by Executive Board of Sri Lanka Climate Fund. <br><br>
+        Verification Report submitted for the project {{programmeName}} by the Sri Lanka Climate Fund has been rejected by Executive Board of Sri Lanka Climate Fund due to the following reason/s:<br>
+        {{remark}} <br><br>
 
-        Please re-submit again if required by clicking <a href="{{programmePageLink}}">here</a>. 
+        Please submit again if required by clicking <a href="{{programmePageLink}}">here</a>. 
         <br><br>
 
         Sincerely,  <br>
