@@ -6,6 +6,7 @@ import { NationalAPIModule } from "./national-api/national.api.module";
 import { join } from "path";
 import { AnalyticsAPIModule } from "./analytics-api/analytics.api.module";
 import { buildNestApp } from "./server";
+import { ApiServiceModule } from "./api-service/api-service.module";
 const fs = require("fs");
 
 async function bootstrap() {
@@ -24,6 +25,10 @@ async function bootstrap() {
         module = NationalAPIModule;
         httpPath = "national";
         break;
+      case "api-service":
+        module = ApiServiceModule;
+        httpPath = "api";
+        break;
       case "analytics-api":
         module = AnalyticsAPIModule;
         httpPath = "stats";
@@ -37,7 +42,7 @@ async function bootstrap() {
         console.log("Module initiated", moduleName);
         continue;
       case "data-importer":
-        await importHandler({ importTypes: process.env.DATA_IMPORT_TYPES});
+        await importHandler({ importTypes: process.env.DATA_IMPORT_TYPES });
         console.log("Module initiated", moduleName);
         continue;
       default:
@@ -47,14 +52,13 @@ async function bootstrap() {
 
     const app = await buildNestApp(module, "/" + httpPath);
     if (moduleName == "national-api") {
-
-      if (fs.existsSync('organisations.csv')) {
+      if (fs.existsSync("organisations.csv")) {
         const orgs = await fs.readFileSync("organisations.csv", "utf8");
         console.log("Inserting orgs", orgs);
         await setupHandler.handler({ type: "IMPORT_ORG", body: orgs });
       }
-      
-      if (fs.existsSync('users.csv')) {
+
+      if (fs.existsSync("users.csv")) {
         const users = await fs.readFileSync("users.csv", "utf8");
         console.log("Inserting users", users);
         await setupHandler.handler({ type: "IMPORT_USERS", body: users });

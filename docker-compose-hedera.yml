@@ -1,0 +1,22 @@
+version: '3.3'
+volumes:
+  data:
+    driver: local
+  filestore:
+    driver: local
+services:
+  api-service:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ['yarn', 'api-service:prod']
+    ports:
+      - '3001:3001'
+  custodian-service:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ['yarn', 'custodian-service:prod']
+    ports:
+      - '3002:3002'
+   
