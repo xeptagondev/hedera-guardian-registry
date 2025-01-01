@@ -1,4 +1,4 @@
-version: '3.3'
+version: "3.3"
 volumes:
   data:
     driver: local
@@ -9,14 +9,17 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: ['yarn', 'api-service:prod']
+    command: ["yarn", "api-service:prod"]
     ports:
-      - '3001:3001'
+      - "3001:3001"
+    environment:
+      API_SERVICE_PORT: 3001
   custodian-service:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: ['yarn', 'custodian-service:prod']
+    command: ["yarn", "custodian-service:prod"]
     ports:
-      - '3002:3002'
-   
+      - "3002:3002"
+    environment:
+      CUSTODIAN_SERVICE_PORT: 3002
