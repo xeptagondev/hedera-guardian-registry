@@ -26,6 +26,8 @@ services:
     command: ["yarn", "api-service:prod"]
     ports:
       - "3001:3001"
+    depends_on:
+      - db_hedera
     environment:
       API_SERVICE_PORT: 3001
       DB_HOST: db_hedera
