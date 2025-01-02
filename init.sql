@@ -1,2 +1,1 @@
-create database carbondev;
-create database "carbondevEvents";
+create database db_hedera;

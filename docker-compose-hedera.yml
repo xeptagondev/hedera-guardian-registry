@@ -5,6 +5,20 @@ volumes:
   filestore:
     driver: local
 services:
+  db_hedera:
+    container_name: db_hedera
+    image: postgres
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_USER: root
+      PSQL_USERNAME: root
+      PGDATA: /data/postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - data:/data/postgres
   api-service:
     build:
       context: .
@@ -14,6 +28,11 @@ services:
       - "3001:3001"
     environment:
       API_SERVICE_PORT: 3001
+      DB_HOST: db_hedera
+      DB_PORT: 5432
+      DB_USERNAME: root
+      DB_PASSWORD: "123"
+      DB_NAME: db_hedera
   custodian-service:
     build:
       context: .
@@ -23,3 +42,4 @@ services:
       - "3002:3002"
     environment:
       CUSTODIAN_SERVICE_PORT: 3002
+      POLICY_ID: 67760bd322fd747bdc5f3b62
