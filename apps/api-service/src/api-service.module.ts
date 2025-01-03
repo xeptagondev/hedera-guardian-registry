@@ -8,6 +8,11 @@ import { UserEntity } from "libs/shared/entities/user.entity";
 import { OrganizationEntity } from "libs/shared/entities/organization.entity";
 import { UserRoleEntity } from "libs/shared/entities/user.role.entity";
 import { OrganizationTypeEntity } from "libs/shared/entities/organization.type.entity";
+import { OrganizationController } from "./organization/organization.controller";
+import { UserController } from "./user/user.controller";
+import { OrganizationModule } from "libs/shared/organization/organization.module";
+import { OrganizationService } from "libs/shared/organization/src/organization/organization.service";
+import { UserService } from "libs/shared/user/src/user/user.service";
 
 @Module({
   imports: [
@@ -20,7 +25,7 @@ import { OrganizationTypeEntity } from "libs/shared/entities/organization.type.e
       OrganizationTypeEntity,
     ]),
   ],
-  controllers: [ApiServiceController],
-  providers: [ApiServiceService],
+  controllers: [ApiServiceController, OrganizationController, UserController],
+  providers: [ApiServiceService, OrganizationService, UserService],
 })
 export class ApiServiceModule {}

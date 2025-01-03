@@ -1,47 +1,82 @@
 version: "3.3"
+
 volumes:
-  data:
+  data_api:
     driver: local
-  filestore:
+  data_custodian:
     driver: local
+
 services:
-  db_hedera:
-    container_name: db_hedera
+  # ---------------------------
+  # Postgres for API service
+  # ---------------------------
+  hedera_api_db:
+    container_name: hedera_api_db
     image: postgres
     restart: always
     ports:
       - "5433:5432"
     environment:
+      POSTGRES_DB: hedera_api_db
       POSTGRES_PASSWORD: "123"
       POSTGRES_USER: root
-      PSQL_USERNAME: root
-      PGDATA: /data/postgres
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - data:/data/postgres
+      - ./init.sql:/docker-entrypoint-initdb.d/init_api.sql
+      - data_api:/data/postgres
+
+  # ---------------------------
+  # Postgres for Custodian service
+  # ---------------------------
+  hedera_custodian_db:
+    container_name: hedera_custodian_db
+    image: postgres
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: hedera_custodian_db
+      POSTGRES_PASSWORD: "123"
+      POSTGRES_USER: root
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init_custodian.sql
+      - data_custodian:/data/postgres
+
+  # ---------------------------
+  # API Service
+  # ---------------------------
   api-service:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile # The Dockerfile above
     command: ["yarn", "api-service:prod"]
     ports:
       - "3001:3001"
     depends_on:
-      - db_hedera
+      - hedera_api_db
     environment:
       API_SERVICE_PORT: 3001
-      DB_HOST: db_hedera
+      DB_HOST: hedera_api_db
       DB_PORT: 5432
       DB_USERNAME: root
       DB_PASSWORD: "123"
-      DB_NAME: db_hedera
+      DB_NAME: hedera_api_db
+
+  # ---------------------------
+  # Custodian Service
+  # ---------------------------
   custodian-service:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Dockerfile # The same Dockerfile
     command: ["yarn", "custodian-service:prod"]
     ports:
       - "3002:3002"
+    depends_on:
+      - hedera_custodian_db
     environment:
       CUSTODIAN_SERVICE_PORT: 3002
-      POLICY_ID: 67760bd322fd747bdc5f3b62
+      DB_HOST: hedera_custodian_db
+      DB_PORT: 5432
+      DB_USERNAME: root
+      DB_PASSWORD: "123"
+      DB_NAME: hedera_custodian_db

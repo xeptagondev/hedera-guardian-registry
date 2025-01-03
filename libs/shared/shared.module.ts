@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
+import { OrganizationModule } from "./organization/organization.module";
+import { UserModule } from "./user/user.module";
 
-@Module({})
+@Module({
+  imports: [OrganizationModule, UserModule],
+  exports: [OrganizationModule, UserModule],
+})
 export class SharedModule {}

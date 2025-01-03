@@ -1,0 +1,1 @@
+create database hedera_api_db;

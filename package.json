@@ -15,7 +15,8 @@
     "build:api-service": "nest build api-service",
     "build:custodian-service": "nest build custodian-service",
     "api-service:prod": "node dist/apps/api-service/main",
-    "custodian-service:prod": "node dist/apps/custodian-service/main"
+    "custodian-service:prod": "node dist/apps/custodian-service/main",
+    "all:dev": "concurrently \"nest start --watch api-service\" \"nest start --watch custodian-service\""
   },
   "dependencies": {
     "@nestjs/class-transformer": "^0.4.0",
