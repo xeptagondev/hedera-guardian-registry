@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from "typeorm";
 import { OrganizationEntity } from "./organization.entity";
-import { UserRoleEntity } from "./user.role.entity";
+import { OrganizationTypeRoleEntity } from "./organization.type.role.entity";
 
 @Entity()
 export class UserEntity {
@@ -20,7 +20,7 @@ export class UserEntity {
   @JoinColumn()
   organization: OrganizationEntity;
 
-  @ManyToOne(() => UserRoleEntity, { nullable: false })
+  @ManyToOne(() => OrganizationTypeRoleEntity, { nullable: false })
   @JoinColumn()
-  role: UserRoleEntity;
+  role: OrganizationTypeRoleEntity;
 }
