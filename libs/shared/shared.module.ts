@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { OrganizationModule } from "./organization/organization.module";
-import { UserModule } from "./user/user.module";
+import { OrganizationModule } from "./api/organization/organization.module";
+import { UserModule } from "./api/user/user.module";
 
 @Module({
   imports: [OrganizationModule, UserModule],

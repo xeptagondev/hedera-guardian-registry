@@ -1,6 +1,6 @@
 import { Body, Controller, Post, UseGuards, Request, Inject } from "@nestjs/common";
 import { OrganizationCreateDto } from "libs/shared/dto/organization.create.dto";
-import { OrganizationService } from "libs/shared/organization/src/organization/organization.service";
+import { OrganizationService } from "libs/shared/api/organization/src/organization/organization.service";
 
 @Controller("organization")
 export class OrganizationController {

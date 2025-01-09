@@ -6,7 +6,6 @@ import { NationalAPIModule } from "./national-api/national.api.module";
 import { join } from "path";
 import { AnalyticsAPIModule } from "./analytics-api/analytics.api.module";
 import { buildNestApp } from "./server";
-import { ApiServiceModule } from "./api-service/api-service.module";
 const fs = require("fs");
 
 async function bootstrap() {
@@ -24,10 +23,6 @@ async function bootstrap() {
       case "national-api":
         module = NationalAPIModule;
         httpPath = "national";
-        break;
-      case "api-service":
-        module = ApiServiceModule;
-        httpPath = "api";
         break;
       case "analytics-api":
         module = AnalyticsAPIModule;

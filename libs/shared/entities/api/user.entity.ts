@@ -14,7 +14,7 @@ export class UserEntity {
   password: string;
 
   @Column()
-  name: string;
+  username: string;
 
   @ManyToOne(() => OrganizationEntity, { nullable: false })
   @JoinColumn()
