@@ -17,6 +17,34 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@app/api-shared": [
+        "libs/api-shared/src",
+        "libs/api-shared/src"
+      ],
+      "@app/api-shared/*": [
+        "libs/api-shared/src/*",
+        "libs/api-shared/src/*"
+      ],
+      "@app/api-lib": [
+        "libs/api-lib/src"
+      ],
+      "@app/api-lib/*": [
+        "libs/api-lib/src/*"
+      ],
+      "@app/common-lib": [
+        "libs/common-lib/src"
+      ],
+      "@app/common-lib/*": [
+        "libs/common-lib/src/*"
+      ],
+      "@app/custodian-lib": [
+        "libs/custodian-lib/src"
+      ],
+      "@app/custodian-lib/*": [
+        "libs/custodian-lib/src/*"
+      ]
+    }
   }
 }
