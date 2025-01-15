@@ -12,6 +12,18 @@ import { ActivityDocModule } from './activity-doc/activity-doc.module';
 import { ProjectDocModule } from './project-doc/project-doc.module';
 
 @Module({
-  imports: [UsersModule, OrganizationModule, OrganizationTypeModule, RoleModule, GuardianRoleModule, ProjectModule, DocumentModule, DocumentTypeModule, ActivityModule, ActivityDocModule, ProjectDocModule]
+    imports: [
+        UsersModule,
+        OrganizationModule,
+        OrganizationTypeModule,
+        RoleModule,
+        GuardianRoleModule,
+        ProjectModule,
+        DocumentModule,
+        DocumentTypeModule,
+        ActivityModule,
+        ActivityDocModule,
+        ProjectDocModule,
+    ],
 })
 export class SharedModule {}

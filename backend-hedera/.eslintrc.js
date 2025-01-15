@@ -26,7 +26,7 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
 
     // General
-    //'indent': ['error', 2], // 2 spaces for indentation
+    // 'indent': ['error', 2], // 2 spaces for indentation
     'linebreak-style': ['error', 'unix'], // Unix linebreak style
     'max-len': ['error', { code: 120 }], // Max line length of 120 characters
     'semi': ['error', 'always'], // Always use semicolons

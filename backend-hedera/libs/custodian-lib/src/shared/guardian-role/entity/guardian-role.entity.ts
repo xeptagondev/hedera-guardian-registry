@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { DocumentTypeEntity } from "../../document-type/entity/document-type.entity";
 
 @Entity()
 export class GuardianRoleEntity {
@@ -7,4 +8,11 @@ export class GuardianRoleEntity {
 
     @Column({ unique: true })
     name: string;
+
+    @ManyToMany(
+        () => DocumentTypeEntity,
+        (docTypeEntity) => docTypeEntity.guardianRoles,
+        { cascade: false },
+    )
+    permissionedDocTypes?: DocumentTypeEntity[];
 }
