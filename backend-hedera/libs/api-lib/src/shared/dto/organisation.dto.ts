@@ -1,12 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsEmpty,
+    IsArray,
+    ArrayMinSize,
+    IsEmail,
     IsEnum,
-    IsInt,
     IsNotEmpty,
     IsNumber,
     IsOptional,
-    IsPositive,
+    IsString,
+    IsUrl,
+    MaxLength,
+    ValidateIf,
 } from 'class-validator';
 
-export class OrganizationRegisterDto {}
+export class OrganisationDto {}

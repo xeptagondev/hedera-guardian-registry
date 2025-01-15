@@ -1,7 +1,8 @@
 import { Body, Controller, Post, Request } from '@nestjs/common';
-import { LoginDto } from '../../../../../libs/api-lib/src/shared/dto/login.dto';
-import { UserRegisterDto } from '../../../../../libs/api-lib/src/shared/dto/user.register.dto';
+import { LoginDto } from '../../../../../libs/common-lib/src/shared/login/dto/login.dto';
 import { UserService } from '../service/user.service';
+import { UserDto } from '@app/api-lib/shared/dto/user.dto';
+import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 
 @Controller('user')
 export class UserController {
@@ -12,18 +13,12 @@ export class UserController {
     }
 
     @Post('register')
-    async register(
-        @Body() userRegisterDto: UserRegisterDto,
-        @Request() req,
-    ): Promise<any> {
-        return this.userService.register(userRegisterDto, req);
+    async register(@Body() userDto: UserDto, @Request() req): Promise<any> {
+        return this.userService.register(userDto, req);
     }
 
     @Post('query')
-    async query(
-        @Body() userRegisterDto: UserRegisterDto,
-        @Request() req,
-    ): Promise<any> {
-        return this.userService.query(userRegisterDto, req);
+    async query(@Body() queryDto: QueryDto, @Request() req): Promise<any> {
+        return this.userService.query(queryDto, req);
     }
 }

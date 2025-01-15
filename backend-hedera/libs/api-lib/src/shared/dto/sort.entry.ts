@@ -1,20 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
-    IsEmpty,
-    IsEnum,
     IsInt,
     IsNotEmpty,
     IsNumber,
-    IsOptional,
     IsPositive,
+    IsString,
 } from 'class-validator';
 
-export class UserRegisterDto {
-    @ApiProperty()
+export class SortEntry {
     @IsNotEmpty()
-    username: string;
+    @ApiProperty()
+    key: any;
 
-    @ApiProperty()
     @IsNotEmpty()
-    password: string;
+    @ApiProperty()
+    order: any;
+
+    @ApiPropertyOptional()
+    nullFirst?: boolean;
 }

@@ -1,12 +1,13 @@
-import { OrganizationRegisterDto } from '@app/api-lib/shared/dto/organization.register.dto';
+import { OrganisationDto } from '@app/api-lib/shared/dto/organisation.dto';
+import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class OrganizationService {
-    register(organizationRegisterDto: OrganizationRegisterDto, req: any): any {
+    register(organisationDto: OrganisationDto, req: any): any {
         throw new Error('Method not implemented.');
     }
-    query(organizationRegisterDto: OrganizationRegisterDto, req: any): any {
+    query(queryDto: QueryDto, req: any): any {
         throw new Error('Method not implemented.');
     }
 }

@@ -1,0 +1,58 @@
+version: '3.3'
+
+volumes:
+    data_api:
+        driver: local
+    data_custodian:
+        driver: local
+
+services:
+    hedera_db:
+        container_name: hedera_db
+        image: postgres
+        restart: always
+        ports:
+            - '5433:5432'
+        environment:
+            POSTGRES_DB: hedera_db
+            POSTGRES_PASSWORD: '123'
+            POSTGRES_USER: root
+        volumes:
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+            - data_api:/data/postgres
+
+    api:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        command: ['yarn', 'api:prod']
+        ports:
+            - '3001:3001'
+        # depends_on:
+        #   - hedera_api_db
+        environment:
+            API_PORT: 3001
+            CUSTODIAN_URL: 'http://127.0.0.1:3002'
+            DB_HOST: hedera_db
+            DB_PORT: 5432
+            DB_USERNAME: root
+            DB_PASSWORD: '123'
+            DB_NAME: hedera_db
+
+    custodian:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        command: ['yarn', 'custodian:prod']
+        ports:
+            - '3002:3002'
+        depends_on:
+            - hedera_db
+        environment:
+            CUSTODIAN_PORT: 3002
+            GUARDIAN_URL: 'http://3.93.78.104:3000/'
+            DB_HOST: hedera_db
+            DB_PORT: 5432
+            DB_USERNAME: root
+            DB_PASSWORD: '123'
+            DB_NAME: hedera_db
