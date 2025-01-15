@@ -10,7 +10,7 @@ export class UserService {
             const response = await axios.post(
                 this.configService.get('guardian.url') +
                     this.configService.get('guardian.login'),
-                JSON.stringify(loginDto),
+                loginDto,
             );
             return response.data;
         } catch (error) {

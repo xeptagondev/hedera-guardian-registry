@@ -62,7 +62,7 @@ export class UserService {
             const response = await axios.post(
                 this.configService.get('custodian.url') +
                     this.configService.get('custodian.login'),
-                JSON.stringify(loginDto),
+                loginDto,
             );
             return response.data;
         } catch (error) {
