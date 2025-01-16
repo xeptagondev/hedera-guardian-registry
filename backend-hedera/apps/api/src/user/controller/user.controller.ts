@@ -14,6 +14,7 @@ export class UserController {
 
     @Post('add')
     async register(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
+        // console.log(userDto);
         return this.userService.add(userDto, req);
     }
 

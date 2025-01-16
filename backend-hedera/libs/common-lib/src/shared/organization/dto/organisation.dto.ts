@@ -12,5 +12,9 @@ import {
     MaxLength,
     ValidateIf,
 } from 'class-validator';
+import { CompanyRoleEnum } from '../enum/company.role.enum';
 
-export class OrganisationDto {}
+export class OrganisationDto {
+    name: string;
+    companyRole: CompanyRoleEnum;
+}
