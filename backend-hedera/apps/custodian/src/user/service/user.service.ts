@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
+import * as crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class UserService {
     constructor(private readonly configService: ConfigService) {}
@@ -34,6 +36,64 @@ export class UserService {
     async delay(ms: number) {
         return new Promise<void>((resolve) => setTimeout(resolve, ms));
     }
+
+    generateMessageId(): string {
+        const seconds = Math.floor(Date.now() / 1000);
+        const nanoseconds = process.hrtime()[1];
+        return `${seconds}.${nanoseconds}`;
+    }
+
+    generateMessageHash(data: any): string {
+        const jsonString = JSON.stringify(data);
+        return crypto.createHash('sha256').update(jsonString).digest('hex');
+    }
+
+    generateUUID(): string {
+        return uuidv4();
+    }
+    createPayload(response: any): any {
+        return {
+            document: {
+                createDate: new Date().toISOString(),
+                updateDate: new Date().toISOString(),
+                owner: response.owner,
+                hash: response.hash,
+                document: response.document,
+                documentFileId: this.generateUUID(),
+                documentFields: [
+                    'id',
+                    'credentialSubject.id',
+                    'credentialSubject.0.id',
+                    'credentialSubject.0.name',
+                    'credentialSubject.0.hedera_account',
+                    'credentialSubject.0.projectName',
+                    'credentialSubject.0.creditEst',
+                    'credentialSubject.0.tokenId',
+                    'credentialSubject.0.amount',
+                ],
+                hederaStatus: 'ISSUE',
+                signature: 0,
+                type: 'developer',
+                policyId: response.policyId,
+                tag: 'save_pending_dev_org',
+                option: {
+                    status: 'pending',
+                },
+                schema: response.schema,
+                messageId: this.generateMessageId(),
+                topicId: this.configService.get('policy.topicId'),
+                relationships: response.relationships,
+                accounts: response.accounts,
+                group: response.group,
+                messageHash: this.generateMessageHash(response.document),
+                _id: this.generateUUID(),
+                __sourceTag__: 'pending_developer_orgs',
+                id: this.generateUUID(),
+            },
+            tag: 'Button_0',
+        };
+    }
+
     async userLogin(username: string, password: string) {
         const loginResponse = await axios.post(
             `${this.configService.get('guardian.url')}${this.configService.get('guardian.login')}`,
@@ -97,6 +157,7 @@ export class UserService {
                     },
                 },
             );
+            console.log(updateResponse.data);
             await this.delay(10000);
 
             console.log(
@@ -117,11 +178,30 @@ export class UserService {
                 },
             );
 
-            const createGroupResponse = await axios.post(
+            const createGroupTypeResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group')}`,
                 {
                     group: userDto.company.companyRole,
                     label: userDto.company.name,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
+                        'Content-Type': 'application/json',
+                    },
+                },
+            );
+
+            const createGroupResponse = await axios.post(
+                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${userDto.company.companyRole}`)}`,
+                {
+                    document: {
+                        name: userDto.company.name,
+                        hedera_account: userDto.hederaAccount,
+                        email: userDto.email,
+                        role: userDto.company.companyRole,
+                    },
+                    ref: null,
                 },
                 {
                     headers: {
