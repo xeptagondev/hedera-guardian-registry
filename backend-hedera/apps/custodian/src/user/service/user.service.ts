@@ -211,6 +211,7 @@ export class UserService {
                 },
             );
 
+            //approval pending
             return createGroupResponse.data;
         } catch (error) {
             console.error('Error occurred:', error.message || error);
