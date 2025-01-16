@@ -46,7 +46,7 @@ export class UserService {
                     'guardian.register',
                 )}`,
                 {
-                    username: userDto.name,
+                    username: userDto.username,
                     password: userDto.password,
                     password_confirmation: userDto.password,
                     role: 'USER',
@@ -55,12 +55,11 @@ export class UserService {
             const updateResponse = await axios.put(
                 `${this.configService.get('guardian.url')}${this.configService.get(
                     'guardian.profileUpdate',
-                )}`,
+                )}${userDto.username}`,
                 {
-                    parent: 'did:hedera:testnet:Hd3Q9whzRsi8YbEuJDVt1pnixzLJ888HhCBoa2Ba8TCi_0.0.5355735',
-                    hederaAccountId: '0.0.5311580',
-                    hederaAccountKey:
-                        '302e020100300506032b657004220420fa1c68fb81893c972fa860a209b82c61ffbbff50e23495a6791c20b593a5f47a',
+                    parent: sruLoginResponse.data.did,
+                    hederaAccountId: userDto.hederaAccount,
+                    hederaAccountKey: userDto.hederaKey,
                     useFireblocksSigning: false,
                     fireblocksConfig: {
                         fireBlocksVaultId: '',
