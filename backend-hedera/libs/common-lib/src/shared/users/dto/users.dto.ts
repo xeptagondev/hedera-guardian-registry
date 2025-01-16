@@ -1,5 +1,6 @@
-import { RoleDTO } from "../../role/dto/role.dto";
-import { RoleEnum } from "../../role/enum/role.enum";
+import { OrganisationDto } from '../../organization/dto/organisation.dto';
+import { RoleDTO } from '../../role/dto/role.dto';
+import { RoleEnum } from '../../role/enum/role.enum';
 
 export class UsersDTO {
     id: number;
@@ -7,4 +8,5 @@ export class UsersDTO {
     name: string;
     password: string;
     role: RoleDTO | RoleEnum;
+    company: OrganisationDto;
 }

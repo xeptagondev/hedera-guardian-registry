@@ -1,4 +1,4 @@
-import { OrganisationDto } from '@app/api-lib/shared/dto/organisation.dto';
+import { OrganisationDto } from '@app/common-lib/shared/organization/dto/organisation.dto';
 import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 import { Injectable } from '@nestjs/common';
 

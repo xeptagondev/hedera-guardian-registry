@@ -1,10 +1,10 @@
 import { LoginDto } from '@app/common-lib/shared/login/dto/login.dto';
 import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
-import { UserDto } from '@app/api-lib/shared/dto/user.dto';
 import { Injectable } from '@nestjs/common';
 import { OrganizationService } from '../../organization/service/organization.service';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
 
 @Injectable()
 export class UserService {
@@ -15,9 +15,19 @@ export class UserService {
     query(queryDto: QueryDto, req: any): any {
         throw new Error('Method not implemented.');
     }
-    register(userDto: UserDto, req: any): any {
-        throw new Error('Method not implemented.');
+    async add(userDto: UsersDTO, req: any) {
+        try {
+            const response = await axios.post(
+                this.configService.get('url') +
+                    this.configService.get('user.add'),
+                userDto,
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error occurred while sending POST request:', error);
+        }
     }
+
     async login(loginDto: LoginDto, req: any) {
         // const organisationDetails = await this.organizationService.findById(
         //     user.companyId,
@@ -60,8 +70,8 @@ export class UserService {
 
         try {
             const response = await axios.post(
-                this.configService.get('custodian.url') +
-                    this.configService.get('custodian.login'),
+                this.configService.get('url') +
+                    this.configService.get('user.login'),
                 loginDto,
             );
             return response.data;
