@@ -10,6 +10,7 @@ import { DocumentTypeModule } from './document-type/document-type.module';
 import { ActivityModule } from './activity/activity.module';
 import { ActivityDocModule } from './activity-doc/activity-doc.module';
 import { ProjectDocModule } from './project-doc/project-doc.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { ProjectDocModule } from './project-doc/project-doc.module';
         ActivityModule,
         ActivityDocModule,
         ProjectDocModule,
+        AuditModule,
     ],
 })
 export class SharedModule {}
