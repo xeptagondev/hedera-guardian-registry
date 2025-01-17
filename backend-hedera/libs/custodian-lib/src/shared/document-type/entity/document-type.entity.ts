@@ -1,7 +1,12 @@
-import { Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { ActivityDocEntity } from "../../activity-doc/entity/activity-doc.entity";
-import { ActivityEntity } from "../../activity/entity/activity.entity";
-import { GuardianRoleEntity } from "../../guardian-role/entity/guardian-role.entity";
+import {
+    Entity,
+    JoinTable,
+    ManyToMany,
+    OneToMany,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ActivityDocEntity } from '../../activity-doc/entity/activity-doc.entity';
+import { GuardianRoleEntity } from '../../guardian-role/entity/guardian-role.entity';
 
 @Entity()
 export class DocumentTypeEntity {

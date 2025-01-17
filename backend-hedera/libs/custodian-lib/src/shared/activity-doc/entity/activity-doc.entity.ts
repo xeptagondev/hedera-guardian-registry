@@ -1,6 +1,6 @@
-import { Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
-import { DocumentTypeEntity } from "../../document-type/entity/document-type.entity";
-import { ActivityEntity } from "../../activity/entity/activity.entity";
+import { Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { DocumentTypeEntity } from '../../document-type/entity/document-type.entity';
+import { ActivityEntity } from '../../activity/entity/activity.entity';
 
 @Entity()
 @Unique(['activity', 'documentType'])
@@ -14,6 +14,9 @@ export class ActivityDocEntity {
     )
     documentType: DocumentTypeEntity;
 
-    @ManyToOne(() => ActivityEntity, (activityEntity) => activityEntity.activityDocs)
+    @ManyToOne(
+        () => ActivityEntity,
+        (activityEntity) => activityEntity.activityDocs,
+    )
     activity: ActivityEntity;
 }

@@ -4,7 +4,6 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
 import * as crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
 import { AuditDTO } from '@app/custodian-lib/shared/audit/dto/audit.dto';
 import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
@@ -147,15 +146,15 @@ export class UserService extends SuperService {
                 this.configService.get('root.password'),
             );
 
-            const registerResponse = await axios.post(
-                `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
-                {
-                    username: userDto.username,
-                    password: userDto.password,
-                    password_confirmation: userDto.password,
-                    role: 'USER',
-                },
-            );
+            // const registerResponse = await axios.post(
+            //     `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
+            //     {
+            //         username: userDto.username,
+            //         password: userDto.password,
+            //         password_confirmation: userDto.password,
+            //         role: 'USER',
+            //     },
+            // );
 
             const userLoginResponse = await this.userLogin(
                 userDto.username,
@@ -240,7 +239,7 @@ export class UserService extends SuperService {
             );
 
             try {
-                let payload = await this.createPayload(
+                const payload = await this.createPayload(
                     createGroupResponse.data,
                     userDto.company.companyRole,
                 );

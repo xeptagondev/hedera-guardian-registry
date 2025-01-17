@@ -17,6 +17,7 @@ export default () => ({
     sru: {
         username: 'amilareg',
         password: '123456',
+        did: 'did:hedera:testnet:Hd3Q9whzRsi8YbEuJDVt1pnixzLJ888HhCBoa2Ba8TCi_0.0.5399395',
     },
     root: {
         username: 'rootuser',
