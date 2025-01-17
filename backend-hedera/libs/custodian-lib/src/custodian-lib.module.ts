@@ -4,8 +4,8 @@ import { CoreModule } from './core/core.module';
 import { SharedModule } from './shared/shared.module';
 
 @Module({
-  providers: [CustodianLibService],
-  exports: [CustodianLibService],
-  imports: [CoreModule, SharedModule],
+    providers: [CustodianLibService],
+    exports: [CustodianLibService],
+    imports: [CoreModule, SharedModule],
 })
 export class CustodianLibModule {}
