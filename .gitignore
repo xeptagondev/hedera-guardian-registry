@@ -14,3 +14,4 @@ web/public/locales/*
 .yalc
 yalc.lock
 **/.gitignore
+**/.env.*

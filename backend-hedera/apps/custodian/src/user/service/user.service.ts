@@ -146,15 +146,15 @@ export class UserService extends SuperService {
                 this.configService.get('root.password'),
             );
 
-            // const registerResponse = await axios.post(
-            //     `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
-            //     {
-            //         username: userDto.username,
-            //         password: userDto.password,
-            //         password_confirmation: userDto.password,
-            //         role: 'USER',
-            //     },
-            // );
+            const registerResponse = await axios.post(
+                `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
+                {
+                    username: userDto.username,
+                    password: userDto.password,
+                    password_confirmation: userDto.password,
+                    role: 'USER',
+                },
+            );
 
             const userLoginResponse = await this.userLogin(
                 userDto.username,
@@ -164,7 +164,7 @@ export class UserService extends SuperService {
             const updateResponse = await axios.put(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}${userDto.username}`,
                 {
-                    parent: sruLoginResponse.data.did,
+                    parent: this.configService.get('guardian.url'),
                     hederaAccountId: userDto.hederaAccount,
                     hederaAccountKey: userDto.hederaKey,
                     useFireblocksSigning: false,

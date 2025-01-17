@@ -3,10 +3,10 @@ import { CustodianService } from './custodian.service';
 
 @Controller()
 export class CustodianController {
-  constructor(private readonly custodianService: CustodianService) {}
+    constructor(private readonly custodianService: CustodianService) {}
 
-  @Get()
-  getHello(): string {
-    return this.custodianService.getHello();
-  }
+    @Get()
+    getHello(): string {
+        return this.custodianService.getHello();
+    }
 }
