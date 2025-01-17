@@ -35,6 +35,11 @@ export default () => ({
             Developer: '5abbc45b-66b3-4dc7-9c4e-388c3d4742f5', //developer_approve_button
             Certifier: 'da3f24d8-8487-4b8c-aa21-5d91d53f3d54', //certifier_approve_button
         },
+        invite: {
+            Government: 'a2523f6d-920e-4bb2-a9f8-295eda8bb19f', // government_group
+            Developer: 'c0d9fdc2-799b-46bd-a103-378d1aab20c2', // developer_group
+            Certifier: 'b6bd824e-e534-4c52-a31d-eb77859cef9c', // certifier_group
+        },
     },
     metadata: {
         approve: {

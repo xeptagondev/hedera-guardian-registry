@@ -5,6 +5,7 @@ import { OrganizationService } from '../../organization/service/organization.ser
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
+import { InviteDTO } from '@app/common-lib/shared/users/dto/invite.dto';
 
 @Injectable()
 export class UserService {
@@ -21,6 +22,19 @@ export class UserService {
                 this.configService.get('url') +
                     this.configService.get('user.add'),
                 userDto,
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error occurred while sending POST request:', error);
+        }
+    }
+
+    async invite(inviteDto: InviteDTO, req: any) {
+        try {
+            const response = await axios.post(
+                this.configService.get('url') +
+                    this.configService.get('user.invite'),
+                inviteDto,
             );
             return response.data;
         } catch (error) {

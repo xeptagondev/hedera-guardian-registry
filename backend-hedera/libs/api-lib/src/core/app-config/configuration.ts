@@ -3,5 +3,6 @@ export default () => ({
     user: {
         login: '/user/login',
         add: '/user/add',
+        invite: '/user/invite',
     },
 });

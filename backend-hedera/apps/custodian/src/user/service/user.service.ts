@@ -9,7 +9,7 @@ import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
 import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
 import { v4 as uuidv4 } from 'uuid';
-
+import { InviteDTO } from '@app/common-lib/shared/users/dto/invite.dto';
 @Injectable()
 export class UserService extends SuperService {
     constructor(
@@ -58,6 +58,7 @@ export class UserService extends SuperService {
         );
         return accessTokenResponse.data.accessToken;
     }
+
     async delay(ms: number) {
         return new Promise<void>((resolve) => setTimeout(resolve, ms));
     }
@@ -136,6 +137,28 @@ export class UserService extends SuperService {
 
         return loginResponse;
     }
+
+    async invite(inviteDto: InviteDTO) {
+        console.log(inviteDto);
+        console.log(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${inviteDto.companyRole}`)}`,
+        );
+        const inviteResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${inviteDto.companyRole}`)}`,
+            {
+                action: 'invite',
+                group: inviteDto.group,
+                role: inviteDto.role,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(inviteDto.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+    }
+
     async add(userDto: UsersDTO) {
         try {
             const sruLoginResponse = await this.userLogin(
@@ -165,7 +188,7 @@ export class UserService extends SuperService {
             const updateResponse = await axios.put(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}${userDto.username}`,
                 {
-                    parent: this.configService.get('guardian.url'),
+                    parent: sruLoginResponse.data.did,
                     hederaAccountId: userDto.hederaAccount,
                     hederaAccountKey: userDto.hederaKey,
                     useFireblocksSigning: false,
@@ -185,6 +208,7 @@ export class UserService extends SuperService {
                     },
                 },
             );
+            console.log(updateResponse.data);
             await this.delay(10000);
 
             const policyAsignResponse = await axios.post(
@@ -201,6 +225,7 @@ export class UserService extends SuperService {
                 },
             );
 
+            console.log(policyAsignResponse.data);
             const createGroupTypeResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group')}`,
                 {
@@ -214,7 +239,7 @@ export class UserService extends SuperService {
                     },
                 },
             );
-
+            console.log(createGroupTypeResponse.data);
             const createGroupResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${userDto.company.companyRole}`)}`,
                 {
@@ -233,7 +258,7 @@ export class UserService extends SuperService {
                     },
                 },
             );
-
+            console.log(createGroupResponse.data);
             const payload = await this.createPayload(
                 createGroupResponse.data,
                 userDto.company.companyRole,
@@ -250,7 +275,7 @@ export class UserService extends SuperService {
                 },
             );
 
-            return groupApproveResponse.data;
+            return createGroupResponse.data;
         } catch (error) {
             console.error('Error occurred:', error.message || error);
             throw new Error('Failed to complete user addition process');
