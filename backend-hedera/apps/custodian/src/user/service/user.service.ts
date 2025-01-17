@@ -4,7 +4,6 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
 import * as crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
 import { AuditDTO } from '@app/custodian-lib/shared/audit/audit.dto';
 import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
