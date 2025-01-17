@@ -141,10 +141,10 @@ export class UserService extends SuperService {
     async invite(inviteDto: InviteDTO) {
         console.log(inviteDto);
         console.log(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${inviteDto.companyRole}`)}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${inviteDto.companyRole}`)}`,
         );
         const inviteResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${inviteDto.companyRole}`)}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${inviteDto.companyRole}`)}`,
             {
                 action: 'invite',
                 group: inviteDto.group,
