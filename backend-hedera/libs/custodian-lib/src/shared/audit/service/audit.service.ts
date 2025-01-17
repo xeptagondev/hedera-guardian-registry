@@ -5,15 +5,14 @@ import { AuditDTO } from '../dto/audit.dto';
 
 @Injectable()
 export class AuditService {
-    constructor(private readonly auditRepository: Repository<AuditEntity>) {}
+    constructor() {}
 
     async save(dto: AuditDTO) {
-        const entity: AuditEntity = {
-            logLevel: dto.logLevel,
-            createdTime: dto.createdTime,
-            data: dto.data,
-        };
-
-        await this.auditRepository.save(entity);
+        // const entity: AuditEntity = {
+        //     logLevel: dto.logLevel,
+        //     createdTime: dto.createdTime,
+        //     data: dto.data,
+        // };
+        // await this.auditRepository.save(entity);
     }
 }
