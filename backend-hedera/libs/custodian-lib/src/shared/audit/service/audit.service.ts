@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { AuditEntity } from '../entity/audit.entity';
-import { AuditDTO } from '../audit.dto';
+import { AuditDTO } from '../dto/audit.dto';
 
 @Injectable()
 export class AuditService {
@@ -10,7 +10,8 @@ export class AuditService {
     async save(dto: AuditDTO) {
         const entity: AuditEntity = {
             logLevel: dto.logLevel,
-            message: dto.message,
+            createdTime: dto.createdTime,
+            data: dto.data,
         };
 
         await this.auditRepository.save(entity);

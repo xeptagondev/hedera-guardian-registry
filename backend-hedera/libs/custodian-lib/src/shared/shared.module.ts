@@ -11,6 +11,8 @@ import { ActivityModule } from './activity/activity.module';
 import { ActivityDocModule } from './activity-doc/activity-doc.module';
 import { ProjectDocModule } from './project-doc/project-doc.module';
 import { AuditModule } from './audit/audit.module';
+import { UtilModule } from './util/util.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
     imports: [
@@ -26,6 +28,8 @@ import { AuditModule } from './audit/audit.module';
         ActivityDocModule,
         ProjectDocModule,
         AuditModule,
+        UtilModule,
+        ConfigModule,
     ],
 })
 export class SharedModule {}

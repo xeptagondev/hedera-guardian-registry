@@ -9,6 +9,13 @@ export class AuditEntity {
     @Column({ type: 'enum', enum: LogLevel, default: LogLevel.DEBUG })
     logLevel: LogLevel;
 
-    @Column()
-    message: string;
+    @Column({
+        type: 'jsonb',
+        array: false,
+        nullable: true,
+    })
+    data: any;
+
+    @Column({ type: 'bigint', nullable: false })
+    createdTime: number;
 }

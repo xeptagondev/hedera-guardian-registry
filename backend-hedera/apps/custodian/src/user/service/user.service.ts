@@ -4,15 +4,21 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
 import * as crypto from 'crypto';
-import { AuditDTO } from '@app/custodian-lib/shared/audit/audit.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { AuditDTO } from '@app/custodian-lib/shared/audit/dto/audit.dto';
 import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
+import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
+
 @Injectable()
-export class UserService {
+export class UserService extends SuperService {
     constructor(
-        private readonly configService: ConfigService,
-        private readonly auditService: AuditService,
-    ) {}
+        protected readonly auditService: AuditService,
+        protected readonly configService: ConfigService,
+    ) {
+        super(auditService, configService);
+    }
+
     async login(loginDto: LoginDto) {
         try {
             const response = await axios.post(
@@ -22,11 +28,12 @@ export class UserService {
                 loginDto,
             );
 
-            if (response.status == 200) {
+            if (response?.status === 200) {
                 const message: string = `User: ${loginDto.username} has logged into the system.`;
                 const auditLog: AuditDTO = {
                     logLevel: LogLevel.INFO,
-                    message: message,
+                    data: { message: message },
+                    createdTime: Date.now(),
                 };
                 try {
                     await this.auditService.save(auditLog);
