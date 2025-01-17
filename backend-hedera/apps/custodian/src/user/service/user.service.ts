@@ -8,7 +8,7 @@ import { AuditDTO } from '@app/custodian-lib/shared/audit/dto/audit.dto';
 import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
 import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
-
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class UserService extends SuperService {
     constructor(
@@ -72,10 +72,10 @@ export class UserService extends SuperService {
         return crypto.createHash('sha256').update(jsonString).digest('hex');
     }
 
-    async generateNanoId() {
-        const { nanoid } = await import('nanoid');
-        return nanoid(24);
+    generateUUID24(): string {
+        return uuidv4().replace(/-/g, '').substring(0, 24);
     }
+
     async createPayload(response: any, role: string) {
         return {
             document: {
@@ -84,7 +84,7 @@ export class UserService extends SuperService {
                 owner: response.owner,
                 hash: response.hash,
                 document: response.document,
-                documentFileId: await this.generateNanoId(),
+                documentFileId: await this.generateUUID24(),
                 documentFields: [
                     'id',
                     'credentialSubject.id',
@@ -111,11 +111,11 @@ export class UserService extends SuperService {
                 accounts: response.accounts,
                 group: response.group,
                 messageHash: this.generateMessageHash(response.document),
-                _id: await this.generateNanoId(),
+                _id: await this.generateUUID24(),
                 __sourceTag__: this.configService.get(
                     `metadata.approve.sourceTag.${role}`,
                 ),
-                id: await this.generateNanoId(),
+                id: await this.generateUUID24(),
             },
             tag: 'Button_0',
         };
@@ -146,15 +146,15 @@ export class UserService extends SuperService {
                 this.configService.get('root.password'),
             );
 
-            // const registerResponse = await axios.post(
-            //     `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
-            //     {
-            //         username: userDto.username,
-            //         password: userDto.password,
-            //         password_confirmation: userDto.password,
-            //         role: 'USER',
-            //     },
-            // );
+            await axios.post(
+                `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
+                {
+                    username: userDto.username,
+                    password: userDto.password,
+                    password_confirmation: userDto.password,
+                    role: 'USER',
+                },
+            );
 
             const userLoginResponse = await this.userLogin(
                 userDto.username,
@@ -184,12 +184,7 @@ export class UserService extends SuperService {
                     },
                 },
             );
-            console.log(updateResponse.data);
             await this.delay(10000);
-
-            console.log(
-                `${this.configService.get('guardian.url')}${this.configService.get('guardian.policyAsign1')}${userDto.username}${this.configService.get('guardian.policyAsign2')}`,
-            );
 
             const policyAsignResponse = await axios.post(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.policyAsign1')}${userDto.username}${this.configService.get('guardian.policyAsign2')}`,
@@ -238,27 +233,23 @@ export class UserService extends SuperService {
                 },
             );
 
-            try {
-                const payload = await this.createPayload(
-                    createGroupResponse.data,
-                    userDto.company.companyRole,
-                );
-                console.log(payload);
-                const groupApproveResponse = await axios.post(
-                    `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
-                    payload,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${await this.accessToken(rootLoginResponse.data.refreshToken)}`,
-                            'Content-Type': 'application/json',
-                        },
+            const payload = await this.createPayload(
+                createGroupResponse.data,
+                userDto.company.companyRole,
+            );
+
+            const groupApproveResponse = await axios.post(
+                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `Bearer ${await this.accessToken(rootLoginResponse.data.refreshToken)}`,
+                        'Content-Type': 'application/json',
                     },
-                );
-                console.log(groupApproveResponse);
-            } catch (e) {
-                console.log(e.data);
-            }
-            return 'done';
+                },
+            );
+
+            return groupApproveResponse.data;
         } catch (error) {
             console.error('Error occurred:', error.message || error);
             throw new Error('Failed to complete user addition process');
