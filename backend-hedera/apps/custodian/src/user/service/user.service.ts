@@ -4,7 +4,7 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
 import * as crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+
 @Injectable()
 export class UserService {
     constructor(private readonly configService: ConfigService) {}
@@ -48,10 +48,11 @@ export class UserService {
         return crypto.createHash('sha256').update(jsonString).digest('hex');
     }
 
-    generateUUID(): string {
-        return uuidv4();
+    async generateNanoId() {
+        const { nanoid } = await import('nanoid');
+        return nanoid(24);
     }
-    createPayload(response: any): any {
+    async createPayload(response: any, role: string) {
         return {
             document: {
                 createDate: new Date().toISOString(),
@@ -59,7 +60,7 @@ export class UserService {
                 owner: response.owner,
                 hash: response.hash,
                 document: response.document,
-                documentFileId: this.generateUUID(),
+                documentFileId: await this.generateNanoId(),
                 documentFields: [
                     'id',
                     'credentialSubject.id',
@@ -73,9 +74,9 @@ export class UserService {
                 ],
                 hederaStatus: 'ISSUE',
                 signature: 0,
-                type: 'developer',
+                type: this.configService.get(`metadata.approve.type.${role}`),
                 policyId: response.policyId,
-                tag: 'save_pending_dev_org',
+                tag: this.configService.get(`metadata.approve.tag.${role}`),
                 option: {
                     status: 'pending',
                 },
@@ -86,9 +87,11 @@ export class UserService {
                 accounts: response.accounts,
                 group: response.group,
                 messageHash: this.generateMessageHash(response.document),
-                _id: this.generateUUID(),
-                __sourceTag__: 'pending_developer_orgs',
-                id: this.generateUUID(),
+                _id: await this.generateNanoId(),
+                __sourceTag__: this.configService.get(
+                    `metadata.approve.sourceTag.${role}`,
+                ),
+                id: await this.generateNanoId(),
             },
             tag: 'Button_0',
         };
@@ -211,8 +214,27 @@ export class UserService {
                 },
             );
 
-            //approval pending
-            return createGroupResponse.data;
+            try {
+                let payload = await this.createPayload(
+                    createGroupResponse.data,
+                    userDto.company.companyRole,
+                );
+                console.log(payload);
+                const groupApproveResponse = await axios.post(
+                    `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
+                    payload,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${await this.accessToken(rootLoginResponse.data.refreshToken)}`,
+                            'Content-Type': 'application/json',
+                        },
+                    },
+                );
+                console.log(groupApproveResponse);
+            } catch (e) {
+                console.log(e.data);
+            }
+            return 'done';
         } catch (error) {
             console.error('Error occurred:', error.message || error);
             throw new Error('Failed to complete user addition process');
