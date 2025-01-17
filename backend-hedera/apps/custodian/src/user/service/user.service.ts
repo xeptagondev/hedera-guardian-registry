@@ -9,13 +9,14 @@ import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
 import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
 import { v4 as uuidv4 } from 'uuid';
+
 @Injectable()
 export class UserService extends SuperService {
     constructor(
         protected readonly auditService: AuditService,
         protected readonly configService: ConfigService,
     ) {
-        super(auditService, configService);
+        super(auditService);
     }
 
     async login(loginDto: LoginDto) {
