@@ -138,36 +138,12 @@ export class UserService extends SuperService {
         return loginResponse;
     }
 
-    async invite(inviteDto: InviteDTO) {
-        console.log(inviteDto);
-        console.log(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${inviteDto.companyRole}`)}`,
-        );
-        const inviteResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${inviteDto.companyRole}`)}`,
-            {
-                action: 'invite',
-                group: inviteDto.group,
-                role: inviteDto.role,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${await this.accessToken(inviteDto.refreshToken)}`,
-                    'Content-Type': 'application/json',
-                },
-            },
-        );
-    }
-
-    async add(userDto: UsersDTO) {
+    async register(userDto: UsersDTO) {
+        console.log(userDto);
         try {
             const sruLoginResponse = await this.userLogin(
                 this.configService.get('sru.username'),
                 this.configService.get('sru.password'),
-            );
-            const rootLoginResponse = await this.userLogin(
-                this.configService.get('root.username'),
-                this.configService.get('root.password'),
             );
 
             await axios.post(
@@ -185,30 +161,33 @@ export class UserService extends SuperService {
                 userDto.password,
             );
 
-            const updateResponse = await axios.put(
-                `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}${userDto.username}`,
-                {
-                    parent: sruLoginResponse.data.did,
-                    hederaAccountId: userDto.hederaAccount,
-                    hederaAccountKey: userDto.hederaKey,
-                    useFireblocksSigning: false,
-                    fireblocksConfig: {
-                        fireBlocksVaultId: '',
-                        fireBlocksAssetId: '',
-                        fireBlocksApiKey: '',
-                        fireBlocksPrivateiKey: '',
+            try {
+                const updateResponse = await axios.put(
+                    `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}${userDto.username}`,
+                    {
+                        parent: sruLoginResponse.data.did,
+                        hederaAccountId: userDto.hederaAccount,
+                        hederaAccountKey: userDto.hederaKey,
+                        useFireblocksSigning: false,
+                        fireblocksConfig: {
+                            fireBlocksVaultId: '',
+                            fireBlocksAssetId: '',
+                            fireBlocksApiKey: '',
+                            fireBlocksPrivateiKey: '',
+                        },
                     },
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${await this.accessToken(
-                            userLoginResponse.data.refreshToken,
-                        )}`,
-                        'Content-Type': 'application/json',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${await this.accessToken(
+                                userLoginResponse.data.refreshToken,
+                            )}`,
+                            'Content-Type': 'application/json',
+                        },
                     },
-                },
-            );
-            console.log(updateResponse.data);
+                );
+            } catch (e) {
+                console.log(e.data);
+            }
             await this.delay(10000);
 
             const policyAsignResponse = await axios.post(
@@ -224,61 +203,116 @@ export class UserService extends SuperService {
                     },
                 },
             );
+            console.log('$$$');
 
-            console.log(policyAsignResponse.data);
-            const createGroupTypeResponse = await axios.post(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group')}`,
-                {
-                    group: userDto.company.companyRole,
-                    label: userDto.company.name,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
-                        'Content-Type': 'application/json',
-                    },
-                },
-            );
-            console.log(createGroupTypeResponse.data);
-            const createGroupResponse = await axios.post(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.${userDto.company.companyRole}`)}`,
-                {
-                    document: {
-                        name: userDto.company.name,
-                        hedera_account: userDto.hederaAccount,
-                        email: userDto.email,
-                        role: userDto.company.companyRole,
-                    },
-                    ref: null,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
-                        'Content-Type': 'application/json',
-                    },
-                },
-            );
-            console.log(createGroupResponse.data);
-            const payload = await this.createPayload(
-                createGroupResponse.data,
-                userDto.company.companyRole,
-            );
-
-            const groupApproveResponse = await axios.post(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
-                payload,
-                {
-                    headers: {
-                        Authorization: `Bearer ${await this.accessToken(rootLoginResponse.data.refreshToken)}`,
-                        'Content-Type': 'application/json',
-                    },
-                },
-            );
-
-            return createGroupResponse.data;
+            if (userDto.company) {
+                return await this.registerGroup(userDto, userLoginResponse);
+            } else {
+                return await this.inviteNewUser(userDto, userLoginResponse);
+            }
         } catch (error) {
             console.error('Error occurred:', error.message || error);
             throw new Error('Failed to complete user addition process');
         }
+    }
+
+    private async inviteNewUser(userDto: UsersDTO, userLoginResponse) {
+        const inviteResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${userDto.companyRole}`)}`,
+            {
+                action: 'invite',
+                group: userDto.group,
+                role: 'DA', //hardcoded for now need to fetch from db
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(userDto.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        const createGroupTypeResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.user.group')}`,
+            {
+                invitation: inviteResponse.data.invitation,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        const createGroupResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.user.${userDto.role}`)}`,
+            {
+                document: {
+                    name: 'Dev org 9',
+                    email: userDto.email,
+                    role: userDto.role,
+                },
+                ref: null,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        console.log(createGroupResponse);
+
+        return createGroupResponse;
+    }
+    private async registerGroup(userDto: UsersDTO, userLoginResponse) {
+        const createGroupTypeResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group.group')}`,
+            {
+                group: userDto.company.companyRole,
+                label: userDto.company.name,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        const createGroupResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.group.${userDto.company.companyRole}`)}`,
+            {
+                document: {
+                    name: userDto.company.name,
+                    hedera_account: userDto.hederaAccount,
+                    email: userDto.email,
+                    role: userDto.company.companyRole,
+                },
+                ref: null,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(userLoginResponse.data.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+        const payload = await this.createPayload(
+            createGroupResponse.data,
+            userDto.company.companyRole,
+        );
+
+        const groupApproveResponse = await axios.post(
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
+            payload,
+            {
+                headers: {
+                    Authorization: `Bearer ${await this.accessToken(userDto.refreshToken)}`,
+                    'Content-Type': 'application/json',
+                },
+            },
+        );
+
+        return createGroupResponse.data;
     }
 }

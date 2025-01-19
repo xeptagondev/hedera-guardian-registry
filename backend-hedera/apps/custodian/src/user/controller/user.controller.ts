@@ -14,10 +14,6 @@ export class UserController {
 
     @Post('add')
     async register(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
-        return this.userService.add(userDto);
-    }
-    @Post('invite')
-    async invite(@Body() inviteDto: InviteDTO, @Request() req): Promise<any> {
-        return this.userService.invite(inviteDto);
+        return this.userService.register(userDto);
     }
 }
