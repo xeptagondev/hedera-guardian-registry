@@ -1,8 +1,8 @@
 import { Body, Controller, Post, Request } from '@nestjs/common';
 import { LoginDto } from '../../../../../libs/common-lib/src/shared/login/dto/login.dto';
 import { UserService } from '../service/user.service';
-import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
+import { QueryDto } from '@app/common-lib/shared/query/dto/query.dto';
 
 @Controller('user')
 export class UserController {
