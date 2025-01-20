@@ -16,11 +16,13 @@ import { GuardianRoleEntity } from '@app/custodian-lib/shared/guardian-role/enti
 import { RoleEntity } from '@app/custodian-lib/shared/role/entity/role.entity';
 import { OrganizationEntity } from '@app/custodian-lib/shared/organization/entity/organization.entity';
 import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-type/entity/organization-type.entity';
+import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
 
 @Injectable()
 export class UserService extends SuperService {
     constructor(
         protected readonly auditService: AuditService,
+        protected readonly utilService: UtilService,
         protected readonly configService: ConfigService,
         @InjectRepository(UsersEntity)
         private readonly userRepository: Repository<UsersEntity>,
