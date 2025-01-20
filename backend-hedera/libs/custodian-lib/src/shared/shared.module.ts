@@ -13,6 +13,7 @@ import { ProjectDocModule } from './project-doc/project-doc.module';
 import { AuditModule } from './audit/audit.module';
 import { UtilModule } from './util/util.module';
 import { ConfigModule } from '@nestjs/config';
+import { PolicyBlocksModule } from './policy-blocks/policy-blocks.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { ConfigModule } from '@nestjs/config';
         AuditModule,
         UtilModule,
         ConfigModule,
+        PolicyBlocksModule,
     ],
 })
 export class SharedModule {}
