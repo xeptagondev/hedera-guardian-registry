@@ -1,5 +1,6 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { RoleEntity } from '../../role/entity/role.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { OrganizationEntity } from '../../organization/entity/organization.entity';
+import { GuardianRoleEntity } from '../../guardian-role/entity/guardian-role.entity';
 
 @Entity()
 export class OrganizationTypeEntity {
@@ -9,8 +10,17 @@ export class OrganizationTypeEntity {
     @Column({ unique: true })
     name: string;
 
-    @ManyToMany(() => RoleEntity, (roleEntity) => roleEntity.orgTypes, {
-        cascade: false,
-    })
-    roles?: RoleEntity[];
+    @OneToMany(
+        () => OrganizationEntity,
+        (organizationEntity) => organizationEntity.organizationType,
+        { nullable: true },
+    )
+    organizations: OrganizationEntity[];
+
+    @OneToMany(
+        () => GuardianRoleEntity,
+        (guardianRoleEntity) => guardianRoleEntity.organizationType,
+        { nullable: true },
+    )
+    guardianRoles: GuardianRoleEntity[];
 }

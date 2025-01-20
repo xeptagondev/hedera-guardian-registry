@@ -1,11 +1,5 @@
-import {
-    Column,
-    Entity,
-    JoinTable,
-    ManyToMany,
-    PrimaryGeneratedColumn,
-} from 'typeorm';
-import { OrganizationTypeEntity } from '../../organization-type/entity/organization-type.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { GuardianRoleEntity } from '../../guardian-role/entity/guardian-role.entity';
 
 @Entity()
 export class RoleEntity {
@@ -15,21 +9,10 @@ export class RoleEntity {
     @Column({ unique: true })
     name: string;
 
-    @ManyToMany(
-        () => OrganizationTypeEntity,
-        (orgTypeEntity) => orgTypeEntity.roles,
+    @OneToMany(
+        () => GuardianRoleEntity,
+        (guardianRoleEntity) => guardianRoleEntity.role,
         { cascade: false },
     )
-    @JoinTable({
-        name: 'guardian_role',
-        joinColumn: {
-            name: 'role_id',
-            referencedColumnName: 'id',
-        },
-        inverseJoinColumn: {
-            name: 'org_type_id',
-            referencedColumnName: 'id',
-        },
-    })
-    orgTypes: OrganizationTypeEntity[];
+    guardianRoles: GuardianRoleEntity[];
 }

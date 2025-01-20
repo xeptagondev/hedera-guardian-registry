@@ -1,4 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+} from 'typeorm';
+import { OrganizationEntity } from '../../organization/entity/organization.entity';
+import { GuardianRoleEntity } from '../../guardian-role/entity/guardian-role.entity';
 
 @Entity()
 export class UsersEntity {
@@ -16,4 +24,20 @@ export class UsersEntity {
 
     @Column()
     phonenumber: string;
+
+    @ManyToOne(
+        () => OrganizationEntity,
+        (organizationEntity) => organizationEntity.users,
+        { nullable: false },
+    )
+    @JoinColumn([{ name: 'organizationId', referencedColumnName: 'id' }])
+    organization: OrganizationEntity;
+
+    @ManyToOne(
+        () => GuardianRoleEntity,
+        (guardianRoleEntity) => guardianRoleEntity.users,
+        { nullable: false },
+    )
+    @JoinColumn([{ name: 'guardianRoleId', referencedColumnName: 'id' }])
+    guardianRole: GuardianRoleEntity;
 }
