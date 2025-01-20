@@ -14,9 +14,9 @@ import { UsersEntity } from '@app/custodian-lib/shared/users/entity/users.entity
     controllers: [OrganizationController],
     imports: [
         TypeOrmModule.forFeature([
+            OrganizationEntity,
             UsersEntity,
             OrganizationTypeEntity,
-            OrganizationEntity,
             GuardianRoleEntity,
             RoleEntity,
         ]),
