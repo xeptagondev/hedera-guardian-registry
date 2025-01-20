@@ -161,14 +161,14 @@ export class UserService extends SuperService {
 
     async add(userDto: UsersDTO) {
         try {
-            const sruLoginResponse = await this.userLogin(
-                this.configService.get('sru.username'),
-                this.configService.get('sru.password'),
-            );
-            const rootLoginResponse = await this.userLogin(
-                this.configService.get('root.username'),
-                this.configService.get('root.password'),
-            );
+            const sruLoginResponse = await this.login({
+                username: this.configService.get('sru.username'),
+                password: this.configService.get('sru.password'),
+            });
+            const rootLoginResponse = await this.login({
+                username: this.configService.get('root.username'),
+                password: this.configService.get('root.password'),
+            });
 
             await axios.post(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
@@ -188,7 +188,7 @@ export class UserService extends SuperService {
             const updateResponse = await axios.put(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}${userDto.username}`,
                 {
-                    parent: sruLoginResponse.data.did,
+                    parent: this.configService.get('sru.did'),
                     hederaAccountId: userDto.hederaAccount,
                     hederaAccountKey: userDto.hederaKey,
                     useFireblocksSigning: false,
