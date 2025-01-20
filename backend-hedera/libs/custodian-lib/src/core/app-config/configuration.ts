@@ -25,10 +25,18 @@ export default () => ({
     },
     blocks: {
         create: {
-            group: '6dd841be-d0a5-45f5-ba74-0790d837f939', //policyRolesBlock
-            Developer: 'ba080996-3118-4f35-95f1-bdcabbcbe7d0', //developer_org_steps
-            Government: '80d7e724-d384-4f28-8d1c-928c98ff3dd6',
-            Certifier: '8adb65a5-41f9-44b9-961c-519eb9e17cc1', //certifier_org_steps
+            group: {
+                group: '6dd841be-d0a5-45f5-ba74-0790d837f939', //policyRolesBlock
+                Developer: 'ba080996-3118-4f35-95f1-bdcabbcbe7d0', //developer_org_steps
+                Government: '80d7e724-d384-4f28-8d1c-928c98ff3dd6',
+                Certifier: '8adb65a5-41f9-44b9-961c-519eb9e17cc1', //certifier_org_steps
+            },
+            user: {
+                group: '6dd841be-d0a5-45f5-ba74-0790d837f939',
+                Admin: '025c7162-eb96-42ee-8006-77eab9f49bc1',
+                Manager: '80d7e724-d384-4f28-8d1c-928c98ff3dd6',
+                Viewer: '8adb65a5-41f9-44b9-961c-519eb9e17cc1',
+            },
         },
         approve: {
             Government: 'deaac808-b54b-4b1b-9b30-1073cea2777d', //government_approve_button
@@ -36,9 +44,9 @@ export default () => ({
             Certifier: 'da3f24d8-8487-4b8c-aa21-5d91d53f3d54', //certifier_approve_button
         },
         invite: {
-            Government: 'a2523f6d-920e-4bb2-a9f8-295eda8bb19f', // government_group
-            Developer: 'c0d9fdc2-799b-46bd-a103-378d1aab20c2', // developer_group
-            Certifier: 'b6bd824e-e534-4c52-a31d-eb77859cef9c', // certifier_group
+            Government: '65e32dd1-043e-4af4-a09f-cd82cd446fab', // government_group
+            Developer: '28087482-b819-49d4-aeb6-93ee6f504007', // developer_group
+            Certifier: '691b308e-d331-481e-9470-84c75226dd34', // certifier_group
         },
     },
     metadata: {
