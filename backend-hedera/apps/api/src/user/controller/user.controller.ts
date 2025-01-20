@@ -1,15 +1,16 @@
 import { Body, Controller, Post, Request } from '@nestjs/common';
-import { LoginDto } from '../../../../../libs/common-lib/src/shared/login/dto/login.dto';
+import { LoginDto } from '@app/common-lib/shared/login/dto/login.dto';
 import { UserService } from '../service/user.service';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
 import { QueryDto } from '@app/common-lib/shared/query/dto/query.dto';
+import { HTTPResponseDto } from '@app/common-lib/shared/response/dto/http.response.dto';
 
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
     @Post('login')
-    async login(@Body() loginDto: LoginDto, @Request() req): Promise<any> {
-        return this.userService.login(loginDto, req);
+    async login(@Body() loginDto: LoginDto): Promise<HTTPResponseDto> {
+        return this.userService.login(loginDto);
     }
 
     @Post('add')
