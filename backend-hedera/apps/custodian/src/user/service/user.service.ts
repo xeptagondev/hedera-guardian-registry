@@ -141,6 +141,8 @@ export class UserService extends SuperService {
     async register(userDto: UsersDTO) {
         console.log(userDto);
         try {
+
+            // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
                 password: this.configService.get('sru.password'),
@@ -150,24 +152,28 @@ export class UserService extends SuperService {
                 password: this.configService.get('root.password'),
             });
 
+            // 2: Register the new user as a 'USER' in guardian backend
             await axios.post(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
                 {
                     username: userDto.username,
-                    password: userDto.password,
+                    password: userDto.password, // This needs to be a password with SALT from API side
                     password_confirmation: userDto.password,
                     role: 'USER',
                 },
             );
 
-            const userLoginResponse = await this.userLogin(
-                userDto.username,
-                userDto.password,
-            );
+
+            // 3. User login to the guardian backend
+            const userLoginResponse = await this.login({
+                username: userDto.username,
+                password: userDto.password,
+            });
 
             try {
+                // 4. Update the user profile with the parent (SRU)
                 const updateResponse = await axios.put(
-                    `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}${userDto.username}`,
+                    `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}/${userDto.username}`,
                     {
                         parent: this.configService.get('sru.did'),
                         hederaAccountId: userDto.hederaAccount,
@@ -194,8 +200,9 @@ export class UserService extends SuperService {
             }
             await this.delay(10000);
 
-            const policyAsignResponse = await axios.post(
-                `${this.configService.get('guardian.url')}${this.configService.get('guardian.policyAsign1')}${userDto.username}${this.configService.get('guardian.policyAsign2')}`,
+            // 5. Assign the policy for the user
+            const policyAssignResponse = await axios.post(
+                `${this.configService.get('guardian.url')}${this.configService.get('guardian.policyAsign1')}/${userDto.username}${this.configService.get('guardian.policyAsign2')}`,
                 {
                     policyIds: [this.configService.get('policy.id')],
                     assign: true,
@@ -210,8 +217,10 @@ export class UserService extends SuperService {
             console.log('$$$');
 
             if (userDto.company) {
+                // 6. Register new organization
                 return await this.registerGroup(userDto, userLoginResponse);
             } else {
+                // 6. Accept an invitation (generate an invitation and create the user)
                 return await this.inviteNewUser(userDto, userLoginResponse);
             }
         } catch (error) {
@@ -221,6 +230,7 @@ export class UserService extends SuperService {
     }
 
     private async inviteNewUser(userDto: UsersDTO, userLoginResponse) {
+        // 1. Generate an invite for the given role
         const inviteResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${userDto.companyRole}`)}`,
             {
@@ -235,6 +245,8 @@ export class UserService extends SuperService {
                 },
             },
         );
+
+        // 2. Submit the generated invitation for user creation
         const createGroupTypeResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.user.group')}`,
             {
@@ -248,6 +260,7 @@ export class UserService extends SuperService {
             },
         );
 
+        // 3. Create the user with the role
         const createGroupResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.user.${userDto.role}`)}`,
             {
@@ -270,6 +283,7 @@ export class UserService extends SuperService {
         return createGroupResponse;
     }
     private async registerGroup(userDto: UsersDTO, userLoginResponse) {
+        // 1. Create a new group type (organization type) => register the organization as a organization type
         const createGroupTypeResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group.group')}`,
             {
@@ -283,6 +297,8 @@ export class UserService extends SuperService {
                 },
             },
         );
+
+        // 2. Create a group (organization) => Create the organization
         const createGroupResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.group.${userDto.company.companyRole}`)}`,
             {
@@ -301,11 +317,14 @@ export class UserService extends SuperService {
                 },
             },
         );
+
+        // 3. Create the required payload for group (organization) save
         const payload = await this.createPayload(
             createGroupResponse.data,
             userDto.company.companyRole,
         );
 
+        // 4. Send request for approval
         const groupApproveResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
             payload,
