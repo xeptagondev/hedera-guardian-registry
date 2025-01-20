@@ -9,14 +9,73 @@ import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
 import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
 import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UsersEntity } from '@app/custodian-lib/shared/users/entity/users.entity';
+import { Repository } from 'typeorm';
+import { GuardianRoleEntity } from '@app/custodian-lib/shared/guardian-role/entity/guardian-role.entity';
+import { RoleEntity } from '@app/custodian-lib/shared/role/entity/role.entity';
+import { OrganizationEntity } from '@app/custodian-lib/shared/organization/entity/organization.entity';
+import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-type/entity/organization-type.entity';
 
 @Injectable()
 export class UserService extends SuperService {
     constructor(
         protected readonly auditService: AuditService,
         protected readonly configService: ConfigService,
+        @InjectRepository(UsersEntity)
+        private readonly userRepository: Repository<UsersEntity>,
+        @InjectRepository(GuardianRoleEntity)
+        private readonly guardianRoleRepository: Repository<GuardianRoleEntity>,
+        @InjectRepository(RoleEntity)
+        private readonly roleRepository: Repository<RoleEntity>,
+        @InjectRepository(OrganizationEntity)
+        private readonly organizationRepository: Repository<OrganizationEntity>,
+        @InjectRepository(OrganizationTypeEntity)
+        private readonly organizationTypeRepository: Repository<OrganizationTypeEntity>,
     ) {
         super(auditService);
+    }
+
+    async save(userDTO: UsersDTO): Promise<boolean> {
+        if (!userDTO.company) {
+            console.log(`Company not provided for ${userDTO.email}`);
+            return false;
+        }
+
+        // get organization entity
+        const org: OrganizationEntity =
+            await this.organizationRepository.findOneBy({
+                name: userDTO.company.name,
+            });
+
+        const orgType: OrganizationTypeEntity =
+            await this.organizationTypeRepository.findOneBy({
+                name: userDTO.companyRole.toString(),
+            });
+
+        const role: RoleEntity = await this.roleRepository.findOneBy({
+            name: userDTO.role.toString(),
+        });
+
+        // get guardian role
+        const guardRole: GuardianRoleEntity =
+            await this.guardianRoleRepository.findOneBy({
+                organizationType: orgType,
+                role: role,
+            });
+
+        const userEntity: UsersEntity = {
+            email: userDTO.email,
+            name: userDTO.name,
+            password: userDTO.password,
+            phoneNumber: userDTO.phoneNumber,
+            organization: org,
+            guardianRole: guardRole,
+        };
+
+        await this.userRepository.save(userEntity);
+
+        return true;
     }
 
     async login(loginDto: LoginDto) {
@@ -141,7 +200,6 @@ export class UserService extends SuperService {
     async register(userDto: UsersDTO) {
         console.log(userDto);
         try {
-
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
@@ -162,7 +220,6 @@ export class UserService extends SuperService {
                     role: 'USER',
                 },
             );
-
 
             // 3. User login to the guardian backend
             const userLoginResponse = await this.login({

@@ -5,8 +5,9 @@ import { LoginModule } from './login/login.module';
 import { OrganizationModule } from './organization/organization.module';
 import { QueryModule } from './query/query.module';
 import { ResponseModule } from './response/response.module';
+import { OrganizationTypeModule } from './organization-type/organization-type.module';
 
 @Module({
-  imports: [RoleModule, UsersModule, LoginModule, OrganizationModule, QueryModule, ResponseModule]
+  imports: [RoleModule, UsersModule, LoginModule, OrganizationModule, QueryModule, ResponseModule, OrganizationTypeModule]
 })
 export class SharedModule {}
