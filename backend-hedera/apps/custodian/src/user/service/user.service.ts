@@ -9,12 +9,19 @@ import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
 import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
 import { v4 as uuidv4 } from 'uuid';
+import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
+import { GuardianRoleEntity } from '@app/custodian-lib/shared/guardian-role/entity/guardian-role.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService extends SuperService {
     constructor(
         protected readonly auditService: AuditService,
         protected readonly configService: ConfigService,
+        protected readonly utilService: UtilService,
+        @InjectRepository(GuardianRoleEntity)
+        private readonly guardianRoleRepository: Repository<GuardianRoleEntity>,
     ) {
         super(auditService);
     }
@@ -139,9 +146,10 @@ export class UserService extends SuperService {
     }
 
     async register(userDto: UsersDTO) {
-        console.log(userDto);
+        const policyBlocks = await this.utilService.getBlocksByPolicy(
+            this.configService.get('policy.id'),
+        );
         try {
-
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
@@ -162,7 +170,6 @@ export class UserService extends SuperService {
                     role: 'USER',
                 },
             );
-
 
             // 3. User login to the guardian backend
             const userLoginResponse = await this.login({
@@ -231,12 +238,21 @@ export class UserService extends SuperService {
 
     private async inviteNewUser(userDto: UsersDTO, userLoginResponse) {
         // 1. Generate an invite for the given role
+        const guardianRole = await this.guardianRoleRepository
+            .createQueryBuilder('guardianRole')
+            .leftJoinAndSelect('guardianRole.role', 'role')
+            .leftJoinAndSelect('guardianRole.organizationType', 'orgType')
+            .where('role.name = :role', { role: userDto.role })
+            .andWhere('orgType.name = :orgType', {
+                orgType: userDto.companyRole,
+            })
+            .getOne();
         const inviteResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${userDto.companyRole}`)}`,
             {
                 action: 'invite',
                 group: userDto.group,
-                role: 'DA', //hardcoded for now need to fetch from db
+                role: guardianRole.name,
             },
             {
                 headers: {
