@@ -11,7 +11,6 @@ export default () => ({
     },
     policy: {
         id: '6789df72cb0885d35f1ea406',
-        groupSelection: 'b302e3c2-d8da-4931-a8a0-2b37e4902273',
         topicId: '0.0.5399398',
     },
     sru: {
@@ -26,26 +25,28 @@ export default () => ({
     blocks: {
         create: {
             group: {
-                group: '6dd841be-d0a5-45f5-ba74-0790d837f939', //policyRolesBlock
-                Developer: 'ba080996-3118-4f35-95f1-bdcabbcbe7d0', //developer_org_steps
-                Government: '80d7e724-d384-4f28-8d1c-928c98ff3dd6',
-                Certifier: '8adb65a5-41f9-44b9-961c-519eb9e17cc1', //certifier_org_steps
+                group: 'create_organization',
+                Developer: 'developer_organization_creation',
+                Government: 'government_organization_creation',
+                Ministry: 'ministry_organization_creation',
+                Certifier: 'certifier_organization_creation',
             },
             user: {
-                group: '6dd841be-d0a5-45f5-ba74-0790d837f939',
+                group: 'create_organization',
                 Admin: '025c7162-eb96-42ee-8006-77eab9f49bc1',
                 Manager: '80d7e724-d384-4f28-8d1c-928c98ff3dd6',
                 Viewer: '8adb65a5-41f9-44b9-961c-519eb9e17cc1',
             },
         },
         approve: {
-            Government: 'deaac808-b54b-4b1b-9b30-1073cea2777d', //government_approve_button
-            Developer: '5abbc45b-66b3-4dc7-9c4e-388c3d4742f5', //developer_approve_button
+            Government: 'deaac808-b54b-4b1b-9b30-1073cea2777d',
+            Developer: '5abbc45b-66b3-4dc7-9c4e-388c3d4742f5',
             Certifier: 'da3f24d8-8487-4b8c-aa21-5d91d53f3d54', //certifier_approve_button
         },
         invite: {
-            Government: '65e32dd1-043e-4af4-a09f-cd82cd446fab', // government_group
+            Government: 'government_root_group_manager', // government_group
             Developer: '28087482-b819-49d4-aeb6-93ee6f504007', // developer_group
+            Ministry: 'ministry_organization_creation',
             Certifier: '691b308e-d331-481e-9470-84c75226dd34', // certifier_group
         },
     },
