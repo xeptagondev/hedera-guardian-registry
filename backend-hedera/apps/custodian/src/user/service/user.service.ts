@@ -50,6 +50,24 @@ export class UserService extends SuperService {
                 name: userDTO.company.name,
             });
 
+        const guardRole: GuardianRoleEntity =
+            await this.getGuardianRole(userDTO);
+
+        const userEntity: UsersEntity = {
+            email: userDTO.email,
+            name: userDTO.name,
+            password: userDTO.password,
+            phoneNumber: userDTO.phoneNumber,
+            organization: org,
+            guardianRole: guardRole,
+        };
+
+        await this.userRepository.save(userEntity);
+
+        return true;
+    }
+
+    private async getGuardianRole(userDTO: UsersDTO) {
         const orgType: OrganizationTypeEntity =
             await this.organizationTypeRepository.findOneBy({
                 name: userDTO.companyRole.toString(),
@@ -65,19 +83,7 @@ export class UserService extends SuperService {
                 organizationType: orgType,
                 role: role,
             });
-
-        const userEntity: UsersEntity = {
-            email: userDTO.email,
-            name: userDTO.name,
-            password: userDTO.password,
-            phoneNumber: userDTO.phoneNumber,
-            organization: org,
-            guardianRole: guardRole,
-        };
-
-        await this.userRepository.save(userEntity);
-
-        return true;
+        return guardRole;
     }
 
     async login(loginDto: LoginDto) {
@@ -292,15 +298,7 @@ export class UserService extends SuperService {
 
     private async inviteNewUser(userDto: UsersDTO, userLoginResponse) {
         // 1. Generate an invite for the given role
-        const guardianRole = await this.guardianRoleRepository
-            .createQueryBuilder('guardianRole')
-            .leftJoinAndSelect('guardianRole.role', 'role')
-            .leftJoinAndSelect('guardianRole.organizationType', 'orgType')
-            .where('role.name = :role', { role: userDto.role })
-            .andWhere('orgType.name = :orgType', {
-                orgType: userDto.companyRole,
-            })
-            .getOne();
+        const guardianRole = await this.getGuardianRole(userDto);
         const inviteResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${userDto.companyRole}`)}`,
             {
