@@ -9,7 +9,6 @@ import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
 import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
 import { v4 as uuidv4 } from 'uuid';
-import { InviteDTO } from '@app/common-lib/shared/users/dto/invite.dto';
 @Injectable()
 export class UserService extends SuperService {
     constructor(

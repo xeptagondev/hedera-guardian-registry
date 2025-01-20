@@ -3,7 +3,6 @@ import { LoginDto } from '../../../../../libs/common-lib/src/shared/login/dto/lo
 import { UserService } from '../service/user.service';
 import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
-import { InviteDTO } from '@app/common-lib/shared/users/dto/invite.dto';
 
 @Controller('user')
 export class UserController {
@@ -16,11 +15,6 @@ export class UserController {
     @Post('add')
     async register(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
         return this.userService.add(userDto, req);
-    }
-
-    @Post('invite')
-    async invite(@Body() inviteDto: InviteDTO, @Request() req): Promise<any> {
-        return this.userService.invite(inviteDto, req);
     }
 
     @Post('query')
