@@ -144,7 +144,30 @@ export class UtilService implements OnModuleInit {
         }
     }
 
-    public getTagIdMap(): Record<string, string> {
-        return this.tagToIdMap;
+    public async getBlocksByPolicy(
+        policyId: string,
+    ): Promise<PolicyBlocksEntity[]> {
+        try {
+            const blocks = await this.policyBlocksRepository.find({
+                where: { policyId: policyId },
+            });
+            return blocks;
+        } catch (error) {
+            throw new Error('Failed to execute getBlocksByPolicy');
+        }
+    }
+
+    public async getBlocksByBlockName(
+        blockName: string,
+        policyId: string,
+    ): Promise<PolicyBlocksEntity[]> {
+        try {
+            const blocks = await this.policyBlocksRepository.find({
+                where: { policyId: policyId, blockName: blockName },
+            });
+            return blocks;
+        } catch (error) {
+            throw new Error('Failed to execute getBlocksByBlockName');
+        }
     }
 }
