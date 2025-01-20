@@ -1,9 +1,7 @@
 version: '3.3'
 
 volumes:
-    data_api:
-        driver: local
-    data_custodian:
+    data:
         driver: local
 
 services:
@@ -19,7 +17,7 @@ services:
             POSTGRES_USER: root
         volumes:
             - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-            - data_api:/data/postgres
+            - data:/data/postgres
 
     api:
         build:

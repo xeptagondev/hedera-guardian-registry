@@ -1,7 +1,7 @@
 import { Controller, Post, Body, Request } from '@nestjs/common';
 import { OrganizationService } from '../service/organization.service';
-import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 import { OrganisationDto } from '@app/common-lib/shared/organization/dto/organisation.dto';
+import { QueryDto } from '@app/common-lib/shared/query/dto/query.dto';
 
 @Controller('organization')
 export class OrganizationController {

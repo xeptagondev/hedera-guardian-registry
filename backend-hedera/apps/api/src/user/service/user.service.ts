@@ -1,10 +1,10 @@
 import { LoginDto } from '@app/common-lib/shared/login/dto/login.dto';
-import { QueryDto } from '@app/api-lib/shared/dto/query.dto';
 import { Injectable } from '@nestjs/common';
 import { OrganizationService } from '../../organization/service/organization.service';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
+import { QueryDto } from '@app/common-lib/shared/query/dto/query.dto';
 
 @Injectable()
 export class UserService {
