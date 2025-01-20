@@ -1,20 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-    IsArray,
-    ArrayMinSize,
-    IsEmail,
-    IsEnum,
-    IsNotEmpty,
-    IsNumber,
-    IsOptional,
-    IsString,
-    IsUrl,
-    MaxLength,
-    ValidateIf,
-} from 'class-validator';
-import { CompanyRoleEnum } from '../enum/company.role.enum';
+import { OrganizationTypeEnum } from '../../organization-type/enum/organization-type.enum';
 
 export class OrganisationDto {
     name: string;
-    companyRole: CompanyRoleEnum;
+    companyRole: OrganizationTypeEnum;
 }

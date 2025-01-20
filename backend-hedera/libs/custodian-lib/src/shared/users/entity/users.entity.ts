@@ -11,13 +11,7 @@ import { GuardianRoleEntity } from '../../guardian-role/entity/guardian-role.ent
 @Entity()
 export class UsersEntity {
     @PrimaryGeneratedColumn()
-    id: number;
-
-    @Column()
-    organizationId: number;
-
-    @Column()
-    guardianRoleId: number;
+    id?: number;
 
     @Column({ unique: true })
     email: string;
@@ -28,15 +22,15 @@ export class UsersEntity {
     @Column()
     password: string;
 
-    @Column()
-    phonenumber: string;
+    @Column({ nullable: true })
+    phoneNumber?: string;
 
     @ManyToOne(
         () => OrganizationEntity,
         (organizationEntity) => organizationEntity.users,
         { nullable: false },
     )
-    @JoinColumn([{ name: 'organizationId', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'organization', referencedColumnName: 'id' }])
     organization: OrganizationEntity;
 
     @ManyToOne(
@@ -44,6 +38,6 @@ export class UsersEntity {
         (guardianRoleEntity) => guardianRoleEntity.users,
         { nullable: false },
     )
-    @JoinColumn([{ name: 'guardianRoleId', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'guardianRole', referencedColumnName: 'id' }])
     guardianRole: GuardianRoleEntity;
 }
