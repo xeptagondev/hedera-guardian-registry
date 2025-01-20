@@ -17,6 +17,9 @@ export class OrganizationEntity {
     @Column()
     name: string;
 
+    @Column()
+    organizationTypeId: number;
+
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {
         nullable: true,
     })
