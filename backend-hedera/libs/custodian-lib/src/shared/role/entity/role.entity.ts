@@ -12,7 +12,6 @@ export class RoleEntity {
     @OneToMany(
         () => GuardianRoleEntity,
         (guardianRoleEntity) => guardianRoleEntity.role,
-        { cascade: false },
     )
     guardianRoles: GuardianRoleEntity[];
 }

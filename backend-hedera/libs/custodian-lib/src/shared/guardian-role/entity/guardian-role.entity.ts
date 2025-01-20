@@ -17,16 +17,16 @@ export class GuardianRoleEntity {
     @Column({ unique: true })
     name: string;
 
-    @PrimaryColumn({ name: 'role_id' })
+    @PrimaryColumn()
     roleId: number;
 
-    @PrimaryColumn({ name: 'org_type_id' })
+    @PrimaryColumn()
     orgTypeId: number;
 
     @ManyToOne(() => RoleEntity, (roleEntity) => roleEntity.guardianRoles, {
         cascade: false,
     })
-    @JoinColumn([{ name: 'role_id', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
     role: RoleEntity;
 
     @ManyToOne(
@@ -34,7 +34,7 @@ export class GuardianRoleEntity {
         (orgTypeEntity) => orgTypeEntity.guardianRoles,
         { cascade: false },
     )
-    @JoinColumn([{ name: 'org_type_id', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'orgTypeId', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
 
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.guardianRole, {

@@ -13,6 +13,12 @@ export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column()
+    organizationId: number;
+
+    @Column()
+    guardianRoleId: number;
+
     @Column({ unique: true })
     email: string;
 
