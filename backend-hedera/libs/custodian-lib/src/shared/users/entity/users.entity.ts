@@ -36,7 +36,7 @@ export class UsersEntity {
     @ManyToOne(
         () => GuardianRoleEntity,
         (guardianRoleEntity) => guardianRoleEntity.users,
-        { nullable: false },
+        { nullable: true },
     )
     @JoinColumn([{ name: 'guardianRole', referencedColumnName: 'id' }])
     guardianRole?: GuardianRoleEntity;

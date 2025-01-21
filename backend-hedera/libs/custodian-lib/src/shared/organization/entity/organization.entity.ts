@@ -17,6 +17,9 @@ export class OrganizationEntity {
     @Column()
     name: string;
 
+    @Column({ nullable: true })
+    group?: string;
+
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {
         nullable: true,
     })
@@ -25,7 +28,7 @@ export class OrganizationEntity {
     @ManyToOne(
         () => OrganizationTypeEntity,
         (organizationTypeEntity) => organizationTypeEntity.organizations,
-        { nullable: false },
+        { nullable: true },
     )
     @JoinColumn([{ name: 'organizationType', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
