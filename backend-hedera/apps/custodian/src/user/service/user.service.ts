@@ -38,7 +38,7 @@ export class UserService extends SuperService {
         super(auditService);
     }
     private tagToIdMap: Record<string, string> = {};
-    async save(userDTO: UsersDTO): Promise<boolean> {
+    async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
             console.log(`Company not provided for ${userDTO.email}`);
             return false;
