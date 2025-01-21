@@ -38,6 +38,9 @@ export default () => ({
                 Viewer: '8adb65a5-41f9-44b9-961c-519eb9e17cc1',
             },
         },
+        registration: {
+            government_admin: 'government_admin_registration',
+        },
         approve: {
             Government: 'deaac808-b54b-4b1b-9b30-1073cea2777d',
             Developer: '5abbc45b-66b3-4dc7-9c4e-388c3d4742f5',

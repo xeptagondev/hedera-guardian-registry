@@ -349,12 +349,30 @@ export class UserService extends SuperService {
 
         // 3. Create the user with the role
         const createGroupResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.create.user.${userDto.role}`))}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.registration.${guardianRole.name}`))}`,
             {
                 document: {
-                    name: 'Dev org 9',
+                    name: userDto.name,
                     email: userDto.email,
                     role: userDto.role,
+                    phone_number: userDto.phoneNumber,
+                    organization: {
+                        name: 'example',
+                        hedera_account: '0.0.1',
+                        role: 'Government',
+                        phone_number: 1,
+                        email: 'example@email.com',
+                        region: ['National'],
+                        address: 'example',
+                        logo: 'ipfs://d51b03a1aae3f0b8b39c983304d5d4b9',
+                        website: 'https://example.com',
+                        tax_id: 'example',
+                        registration_payment_id: 'example',
+                        ministry_government: 'Agriculture',
+                        department_government: 'Cocoa Research Institute',
+                        national_share_of_proceeds: 1,
+                        overall_mitigation_in_global_emissions: 1,
+                    },
                 },
                 ref: null,
             },
