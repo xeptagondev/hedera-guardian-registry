@@ -36,7 +36,7 @@ export class UserService extends SuperService {
         super(auditService);
     }
 
-    async save(userDTO: UsersDTO): Promise<boolean> {
+    async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
             console.log(`Company not provided for ${userDTO.email}`);
             return false;
@@ -214,12 +214,22 @@ export class UserService extends SuperService {
             await axios.post(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
                 {
-                    username: userDto.username,
+                    username: userDto.email,
                     password: userDto.password, // This needs to be a password with SALT from API side
                     password_confirmation: userDto.password,
                     role: 'USER',
                 },
             );
+
+            const userEntity: UsersEntity = {
+                email: userDto.email,
+                name: userDto.name,
+                password: userDto.password,
+                phoneNumber: userDto.phoneNumber,
+            };
+
+            // i. Save user in db without organization and role
+            this.userRepository.save(userEntity);
 
             // 3. User login to the guardian backend
             const userLoginResponse = await this.login({
@@ -337,10 +347,12 @@ export class UserService extends SuperService {
         );
         console.log(createGroupResponse);
 
+        await this.createUser(userDto);
+
         return createGroupResponse;
     }
     private async registerGroup(userDto: UsersDTO, userLoginResponse) {
-        // 1. Create a new group type (organization type) => register the organization as a organization type
+        // 1. Create a new group type in guardian
         const createGroupTypeResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group.group')}`,
             {
@@ -355,7 +367,22 @@ export class UserService extends SuperService {
             },
         );
 
-        // 2. Create a group (organization) => Create the organization
+        // I. Save organization in DB
+        // i. Get orgType
+        const orgType = await this.organizationTypeRepository.findOneBy({
+            name: userDto.company.companyRole,
+        });
+
+        // ii. Create organization
+        let orgEntity: OrganizationEntity = {
+            name: userDto.company.name,
+            organizationType: orgType,
+        };
+
+        // iii. Save organization
+        orgEntity = await this.organizationRepository.save(orgEntity);
+
+        // 2. Create a group (organization) => Create the organization of org type
         const createGroupResponse = await axios.post(
             `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.group.${userDto.company.companyRole}`)}`,
             {
@@ -391,6 +418,27 @@ export class UserService extends SuperService {
                     'Content-Type': 'application/json',
                 },
             },
+        );
+
+        // II. Update user
+        // i. Get role entity
+        const role: RoleEntity = await this.roleRepository.findOneBy({
+            name: userDto.role.toString(),
+        });
+
+        // ii. Get guardian role entity
+        const guardRole: GuardianRoleEntity =
+            await this.guardianRoleRepository.findOneBy({
+                organizationType: orgType,
+                role: role,
+            });
+
+        // iii. Update user entity
+        await this.userRepository.update(
+            {
+                email: userDto.email,
+            },
+            { organization: orgEntity, guardianRole: guardRole },
         );
 
         return createGroupResponse.data;

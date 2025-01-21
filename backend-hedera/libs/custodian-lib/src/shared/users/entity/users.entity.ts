@@ -28,10 +28,10 @@ export class UsersEntity {
     @ManyToOne(
         () => OrganizationEntity,
         (organizationEntity) => organizationEntity.users,
-        { nullable: false },
+        { nullable: true },
     )
     @JoinColumn([{ name: 'organization', referencedColumnName: 'id' }])
-    organization: OrganizationEntity;
+    organization?: OrganizationEntity;
 
     @ManyToOne(
         () => GuardianRoleEntity,
@@ -39,5 +39,5 @@ export class UsersEntity {
         { nullable: false },
     )
     @JoinColumn([{ name: 'guardianRole', referencedColumnName: 'id' }])
-    guardianRole: GuardianRoleEntity;
+    guardianRole?: GuardianRoleEntity;
 }

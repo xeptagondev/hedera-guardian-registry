@@ -12,24 +12,21 @@ import { OrganizationTypeEntity } from '../../organization-type/entity/organizat
 @Entity()
 export class OrganizationEntity {
     @PrimaryGeneratedColumn()
-    id: number;
+    id?: number;
 
     @Column()
     name: string;
 
-    @Column()
-    organizationTypeId: number;
-
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {
         nullable: true,
     })
-    users: UsersEntity[];
+    users?: UsersEntity[];
 
     @ManyToOne(
         () => OrganizationTypeEntity,
         (organizationTypeEntity) => organizationTypeEntity.organizations,
         { nullable: false },
     )
-    @JoinColumn([{ name: 'organizationTypeId', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'organizationType', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
 }
