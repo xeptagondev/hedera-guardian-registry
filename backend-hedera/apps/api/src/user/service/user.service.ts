@@ -28,7 +28,7 @@ export class UserService {
         }
     }
 
-    async login(loginDto: LoginDto, req: any) {
+    async login(loginDto: LoginDto) {
         // const organisationDetails = await this.organizationService.findById(
         //     user.companyId,
         // );

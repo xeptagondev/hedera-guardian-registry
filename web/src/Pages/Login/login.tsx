@@ -43,7 +43,7 @@ const Login: FC<LoginPageProps> = (props: LoginPageProps) => {
     setErrorMsg(undefined);
     try {
       const email = values.email.trim();
-      const response = await post('national/auth/login', {
+      const response = await post('user/login', {
         username: email.trim(),
         password: values.password.trim(),
       });

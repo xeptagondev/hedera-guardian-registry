@@ -16,11 +16,13 @@ import { GuardianRoleEntity } from '@app/custodian-lib/shared/guardian-role/enti
 import { RoleEntity } from '@app/custodian-lib/shared/role/entity/role.entity';
 import { OrganizationEntity } from '@app/custodian-lib/shared/organization/entity/organization.entity';
 import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-type/entity/organization-type.entity';
+import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
 
 @Injectable()
 export class UserService extends SuperService {
     constructor(
         protected readonly auditService: AuditService,
+        protected readonly utilService: UtilService,
         protected readonly configService: ConfigService,
         @InjectRepository(UsersEntity)
         private readonly userRepository: Repository<UsersEntity>,
@@ -35,8 +37,8 @@ export class UserService extends SuperService {
     ) {
         super(auditService);
     }
-
-    async createUser(userDTO: UsersDTO): Promise<boolean> {
+    private tagToIdMap: Record<string, string> = {};
+    async save(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
             console.log(`Company not provided for ${userDTO.email}`);
             return false;
@@ -48,6 +50,24 @@ export class UserService extends SuperService {
                 name: userDTO.company.name,
             });
 
+        const guardRole: GuardianRoleEntity =
+            await this.getGuardianRole(userDTO);
+
+        const userEntity: UsersEntity = {
+            email: userDTO.email,
+            name: userDTO.name,
+            password: userDTO.password,
+            phoneNumber: userDTO.phoneNumber,
+            organization: org,
+            guardianRole: guardRole,
+        };
+
+        await this.userRepository.save(userEntity);
+
+        return true;
+    }
+
+    private async getGuardianRole(userDTO: UsersDTO) {
         const orgType: OrganizationTypeEntity =
             await this.organizationTypeRepository.findOneBy({
                 name: userDTO.companyRole.toString(),
@@ -63,19 +83,7 @@ export class UserService extends SuperService {
                 organizationType: orgType,
                 role: role,
             });
-
-        const userEntity: UsersEntity = {
-            email: userDTO.email,
-            name: userDTO.name,
-            password: userDTO.password,
-            phoneNumber: userDTO.phoneNumber,
-            organization: org,
-            guardianRole: guardRole,
-        };
-
-        await this.userRepository.save(userEntity);
-
-        return true;
+        return guardRole;
     }
 
     async login(loginDto: LoginDto) {
@@ -197,8 +205,17 @@ export class UserService extends SuperService {
         return loginResponse;
     }
 
+    private async setTagToIdMap() {
+        this.tagToIdMap = {};
+        const policyBlocks = await this.utilService.getBlocksByPolicy(
+            this.configService.get('policy.id'),
+        );
+        policyBlocks.forEach((block) => {
+            this.tagToIdMap[block.blockName] = block.blockId;
+        });
+    }
     async register(userDto: UsersDTO) {
-        console.log(userDto);
+        await this.setTagToIdMap();
         try {
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
@@ -281,7 +298,6 @@ export class UserService extends SuperService {
                     },
                 },
             );
-            console.log('$$$');
 
             if (userDto.company) {
                 // 6. Register new organization
@@ -296,14 +312,18 @@ export class UserService extends SuperService {
         }
     }
 
+    private getBlock(blokName: string) {
+        return this.tagToIdMap[blokName];
+    }
     private async inviteNewUser(userDto: UsersDTO, userLoginResponse) {
         // 1. Generate an invite for the given role
+        const guardianRole = await this.getGuardianRole(userDto);
         const inviteResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.invite.${userDto.companyRole}`)}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.invite.${userDto.companyRole}`))}`,
             {
                 action: 'invite',
                 group: userDto.group,
-                role: 'DA', //hardcoded for now need to fetch from db
+                role: guardianRole.name,
             },
             {
                 headers: {
@@ -315,7 +335,7 @@ export class UserService extends SuperService {
 
         // 2. Submit the generated invitation for user creation
         const createGroupTypeResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.user.group')}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get('blocks.create.user.group'))}`,
             {
                 invitation: inviteResponse.data.invitation,
             },
@@ -329,7 +349,7 @@ export class UserService extends SuperService {
 
         // 3. Create the user with the role
         const createGroupResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.user.${userDto.role}`)}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.create.user.${userDto.role}`))}`,
             {
                 document: {
                     name: 'Dev org 9',
@@ -351,10 +371,11 @@ export class UserService extends SuperService {
 
         return createGroupResponse;
     }
+
     private async registerGroup(userDto: UsersDTO, userLoginResponse) {
         // 1. Create a new group type in guardian
         const createGroupTypeResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get('blocks.create.group.group')}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get('blocks.create.group.group'))}`,
             {
                 group: userDto.company.companyRole,
                 label: userDto.company.name,
@@ -384,7 +405,7 @@ export class UserService extends SuperService {
 
         // 2. Create a group (organization) => Create the organization of org type
         const createGroupResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.create.group.${userDto.company.companyRole}`)}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.create.group.${userDto.company.companyRole}`))}`,
             {
                 document: {
                     name: userDto.company.name,
@@ -410,7 +431,7 @@ export class UserService extends SuperService {
 
         // 4. Send request for approval
         const groupApproveResponse = await axios.post(
-            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.configService.get(`blocks.approve.${userDto.company.companyRole}`)}`,
+            `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${userDto.company.companyRole}`))}`,
             payload,
             {
                 headers: {

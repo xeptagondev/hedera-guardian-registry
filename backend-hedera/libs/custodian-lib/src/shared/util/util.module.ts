@@ -8,5 +8,6 @@ import { PolicyBlocksEntity } from '../policy-blocks/entity/policy-blocks.entity
 @Module({
     providers: [SuperService, UtilService],
     imports: [TypeOrmModule.forFeature([PolicyBlocksEntity]), AuditModule],
+    exports: [UtilService],
 })
 export class UtilModule {}
