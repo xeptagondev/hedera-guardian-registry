@@ -16,6 +16,7 @@ import { FilterEntry } from '@app/common-lib/shared/query/dto/filter.entry';
 import { HelperService } from '@app/api-lib/shared/util/service/helper.service';
 import { JWTPayload } from '@app/common-lib/shared/login/dto/jwt.payload.dto';
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
+import { instanceToPlain } from 'class-transformer';
 
 @Injectable()
 export class UserService {
@@ -110,10 +111,12 @@ export class UserService {
         userId: number,
         organisationId: number,
     ): Promise<string> {
-        const organisationDetails =
-            await this.organizationsRepository.findOneBy({
-                id: organisationId,
-            });
+        const organisationDetails = await this.organizationsRepository.findOne({
+            where: { id: organisationId },
+            relations: {
+                organizationType: true,
+            },
+        });
 
         if (!organisationDetails) {
             throw new HttpException(
@@ -122,8 +125,17 @@ export class UserService {
             );
         }
 
-        const user = await this.usersRepository.findOneBy({
-            id: userId,
+        const user = await this.usersRepository.findOne({
+            where: {
+                id: userId,
+            },
+            relations: {
+                organization: true,
+                guardianRole: {
+                    role: true,
+                    organizationType: true,
+                },
+            },
         });
 
         if (!user) {
@@ -136,11 +148,11 @@ export class UserService {
             user.id,
             user.guardianRole.role.name,
             user.organization.id,
-            user.organization.organizationType.name,
+            organisationDetails.organizationType.name,
             parseInt(organisationDetails.state),
         );
 
-        return this.jwtService.signAsync(payload, {
+        return this.jwtService.signAsync(instanceToPlain(payload), {
             secret: this.configService.get<string>('apiJwt.secret'),
         });
     }
@@ -184,84 +196,85 @@ export class UserService {
 
     async login(loginDto: LoginDto): Promise<HTTPResponseDto> {
         const response = new HTTPResponseDto();
-        try {
-            const user = await this.usersRepository.findOne({
-                where: {
-                    email: loginDto.username.trim().toLowerCase(),
+        const user = await this.usersRepository.findOne({
+            where: {
+                email: loginDto.username.trim().toLowerCase(),
+            },
+            relations: {
+                organization: true,
+                guardianRole: {
+                    role: true,
+                    organizationType: true,
+                },
+            },
+        });
+        if (!user || !loginDto.password) {
+            throw new HttpException(
+                'Email or Password is Incorrect',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+
+        const custodianResponse = await axios.post(
+            this.configService.get('url') +
+                this.configService.get('user.login'),
+            loginDto,
+        );
+        if (custodianResponse.status == HttpStatus.CREATED) {
+            const organization = await this.organizationsRepository.findOne({
+                where: { id: user.organization.id },
+                relations: {
+                    organizationType: true,
                 },
             });
-            if (!user || !loginDto.password) {
+            if (
+                !organization ||
+                organization.state == OrganizationStateEnum.PENDING
+            ) {
                 throw new HttpException(
-                    'Email or Password is Incorrect',
+                    'Organization not found or Activate',
                     HttpStatus.UNAUTHORIZED,
                 );
             }
 
-            const custodianResponse = await axios.post(
-                this.configService.get('url') +
-                    this.configService.get('user.login'),
-                loginDto,
-            );
-            if (custodianResponse.status == HttpStatus.CREATED) {
-                const organization = await this.organizationsRepository.findOne(
-                    {
-                        where: { id: user.organization.id },
-                    },
-                );
-                if (
-                    !organization ||
-                    organization.state == OrganizationStateEnum.PENDING
-                ) {
-                    throw new HttpException(
-                        'Organization not found or Activate',
-                        HttpStatus.UNAUTHORIZED,
-                    );
-                }
+            // Refresh Token Generation
+            const refreshPayload = {
+                userId: user.id,
+                companyId: organization.id,
+                role: user.guardianRole.role.name,
+                companyRole: organization.organizationType.name,
+            };
 
-                // Refresh Token Generation
-                const refreshPayload = {
-                    userId: user.id,
-                    companyId: organization.id,
-                    role: user.guardianRole.role.name,
-                    companyRole: organization.organizationType,
-                };
+            const refreshToken = this.jwtService.sign(refreshPayload, {
+                secret: this.configService.get<string>(
+                    'apiJwt.refreshTokenSecret',
+                ),
+                expiresIn: this.configService.get<string>(
+                    'apiJwt.refreshTokenExpireTimeout',
+                ),
+            });
 
-                const refreshToken = this.jwtService.sign(refreshPayload, {
-                    secret: this.configService.get<string>(
-                        'apiJwt.refreshTokenSecret',
-                    ),
-                    expiresIn: this.configService.get<string>(
-                        'apiJwt.refreshTokenExpireTimeout',
-                    ),
-                });
-
-                response.statusCode = HttpStatus.OK;
-                response.data = {
-                    access_token: await this.generateAccessToken(
-                        user.id,
-                        organization.id,
-                    ),
-                    refresh_token: refreshToken,
-                    role: user.guardianRole?.role?.name,
-                    id: user.id,
-                    name: user.name,
-                    companyId: organization.id,
-                    companyRole: organization.organizationType.name,
-                    companyName: organization.name,
-                    companyLogo:
-                        'https://carbon-common-uni.s3.amazonaws.com/profile_images%2F228_1736221366674.png', // Will be removed after database changes
-                    companyState: parseInt(organization.state),
-                };
-                return response;
-            } else {
-                throw new HttpException(
-                    'Email or Password is Incorrect',
-                    HttpStatus.UNAUTHORIZED,
-                );
-            }
-        } catch (error) {
+            response.statusCode = HttpStatus.OK;
+            response.data = {
+                access_token: await this.generateAccessToken(
+                    user.id,
+                    organization.id,
+                ),
+                refresh_token: refreshToken,
+                role: user.guardianRole?.role?.name,
+                id: user.id,
+                name: user.name,
+                companyId: organization.id,
+                companyRole: organization.organizationType.name,
+                companyName: organization.name,
+                companyLogo:
+                    'https://carbon-common-uni.s3.amazonaws.com/profile_images%2F228_1736221366674.png', // Will be removed after database changes
+                companyState: parseInt(organization.state),
+            };
+            return response;
+        } else {
             throw new HttpException(
-                'Error occurred while Login',
+                'Email or Password is Incorrect',
                 HttpStatus.UNAUTHORIZED,
             );
         }

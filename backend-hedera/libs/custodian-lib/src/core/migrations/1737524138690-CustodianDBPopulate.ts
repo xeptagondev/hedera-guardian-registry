@@ -114,6 +114,12 @@ export class CustodianDBPopulate1737524138690 implements MigrationInterface {
                 (SELECT id FROM guardian_role_entity WHERE name='GOVERNMENT_ROOT') \
             );",
         );
+
+        //will be removed later
+        await queryRunner.query(`
+            UPDATE users_entity
+            SET guardian_role_id = (SELECT id FROM guardian_role_entity WHERE name='government_root')
+          `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {}
