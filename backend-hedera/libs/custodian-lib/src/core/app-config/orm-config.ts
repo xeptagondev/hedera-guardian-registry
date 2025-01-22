@@ -1,4 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { CustodianDBPopulate1737524138690 } from '../migrations/1737524138690-CustodianDBPopulate';
 
 const ormConfig: TypeOrmModuleOptions = {
     type: 'postgres',
@@ -9,12 +10,16 @@ const ormConfig: TypeOrmModuleOptions = {
     database: process.env.POSTGRES_DATABASE,
     synchronize: true,
     autoLoadEntities: true,
+    // dropSchema: true,
+    logging: true,
     ssl:
         process.env.APP_ENV && process.env.APP_ENV != 'dev'
             ? {
                   rejectUnauthorized: false,
               }
             : false,
+    migrations: [CustodianDBPopulate1737524138690],
+    migrationsRun: true,
 };
 
 export default ormConfig;

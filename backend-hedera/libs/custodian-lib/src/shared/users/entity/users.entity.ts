@@ -22,7 +22,7 @@ export class UsersEntity {
     @Column()
     password: string;
 
-    @Column({ nullable: true })
+    @Column({ name: 'phone_number', nullable: true })
     phoneNumber?: string;
 
     @ManyToOne(
@@ -30,14 +30,14 @@ export class UsersEntity {
         (organizationEntity) => organizationEntity.users,
         { nullable: true },
     )
-    @JoinColumn([{ name: 'organization', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'organization_id', referencedColumnName: 'id' }])
     organization?: OrganizationEntity;
 
     @ManyToOne(
         () => GuardianRoleEntity,
         (guardianRoleEntity) => guardianRoleEntity.users,
-        { nullable: false },
+        { nullable: true },
     )
-    @JoinColumn([{ name: 'guardianRole', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'guardian_role_id', referencedColumnName: 'id' }])
     guardianRole?: GuardianRoleEntity;
 }

@@ -21,7 +21,7 @@ export class GuardianRoleEntity {
     @ManyToOne(() => RoleEntity, (roleEntity) => roleEntity.guardianRoles, {
         cascade: false,
     })
-    @JoinColumn([{ name: 'role', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'role_id', referencedColumnName: 'id' }])
     role: RoleEntity;
 
     @ManyToOne(
@@ -29,7 +29,7 @@ export class GuardianRoleEntity {
         (orgTypeEntity) => orgTypeEntity.guardianRoles,
         { cascade: false },
     )
-    @JoinColumn([{ name: 'organizationType', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'organization_type_id', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
 
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.guardianRole, {

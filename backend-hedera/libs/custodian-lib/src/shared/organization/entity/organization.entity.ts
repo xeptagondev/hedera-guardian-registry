@@ -17,6 +17,9 @@ export class OrganizationEntity {
     @Column()
     name: string;
 
+    // @Column({ name: 'organization_type_id' })
+    // organizationTypeId: number;
+
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {
         nullable: true,
     })
@@ -27,6 +30,6 @@ export class OrganizationEntity {
         (organizationTypeEntity) => organizationTypeEntity.organizations,
         { nullable: false },
     )
-    @JoinColumn([{ name: 'organizationType', referencedColumnName: 'id' }])
+    @JoinColumn([{ name: 'organization_type_id', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
 }
