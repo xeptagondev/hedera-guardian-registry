@@ -72,7 +72,9 @@ const Login: FC<LoginPageProps> = (props: LoginPageProps) => {
         removeToken();
         setIsTokenExpired(false);
         return IsAuthenticated(response.data.access_token)
-          ? navigate(redirectLocation ? redirectLocation : '/dashboard', { replace: true })
+          ? navigate(redirectLocation ? redirectLocation : '/companyManagement/viewAll', {
+              replace: true,
+            })
           : navigate('/login');
       }
     } catch (error: any) {
