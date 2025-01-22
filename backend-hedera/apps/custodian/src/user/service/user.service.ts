@@ -328,18 +328,25 @@ export class UserService extends SuperService {
 
             // 3. Create the user with the role
             const org: OrganizationEntity =
-                await this.organizationRepository.findOneBy({
-                    group: userDto.group,
+                await this.organizationRepository.findOne({
+                    where: {
+                        group: userDto.group,
+                    },
+                    relations: {
+                        organizationType: true,
+                    },
                 });
             const createGroupResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.registration.${guardianRole.name}`))}`,
                 {
                     document: {
                         name: userDto.name,
-                        role: userDto.role,
+                        role: this.capitalizeFirst(userDto.role),
                         organization: {
                             name: org.name,
-                            role: org.organizationType.name,
+                            role: this.capitalizeFirst(
+                                org.organizationType.name,
+                            ),
                         },
                     },
                     ref: null,
@@ -364,7 +371,15 @@ export class UserService extends SuperService {
     async approve(id: number, organizationApproveDto: OrganisationApproveDto) {
         try {
             const orgEntity: OrganizationEntity =
-                await this.organizationRepository.findOneBy({ id: id });
+                await this.organizationRepository.findOne({
+                    where: {
+                        id: id,
+                    },
+                    relations: {
+                        organizationType: true,
+                    },
+                });
+
             const groupApproveResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${orgEntity.organizationType.name}`))}`,
                 JSON.parse(orgEntity.payload),
@@ -387,13 +402,20 @@ export class UserService extends SuperService {
         }
     }
 
+    capitalizeFirst(input: string): string {
+        if (!input) {
+            return input;
+        }
+        return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
+    }
+
     private async registerGroup(userDto: UsersDTO, userLoginResponse) {
         try {
             // 1. Create a new group type in guardian
             const createGroupTypeResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get('blocks.group.group'))}`,
                 {
-                    group: userDto.company.companyRole,
+                    group: this.capitalizeFirst(userDto.company.companyRole),
                     label: userDto.company.name,
                 },
                 {
@@ -410,7 +432,7 @@ export class UserService extends SuperService {
                 {
                     document: {
                         name: userDto.company.name,
-                        role: userDto.company.companyRole,
+                        role: this.capitalizeFirst(userDto.company.companyRole),
                     },
                     ref: null,
                 },
@@ -448,9 +470,11 @@ export class UserService extends SuperService {
                         name: userDto.name,
                         organization: {
                             name: userDto.company.name,
-                            role: userDto.company.companyRole,
+                            role: this.capitalizeFirst(
+                                userDto.company.companyRole,
+                            ),
                         },
-                        role: userDto.role,
+                        role: this.capitalizeFirst(userDto.role),
                     },
                     ref: null,
                 },
@@ -465,7 +489,7 @@ export class UserService extends SuperService {
             // // 3. Create the required payload for group (organization) save
             const payload = await this.createPayload(
                 createGroupResponse.data,
-                userDto.company.companyRole,
+                this.capitalizeFirst(userDto.company.companyRole),
             );
 
             // // 4. Send request for approval
