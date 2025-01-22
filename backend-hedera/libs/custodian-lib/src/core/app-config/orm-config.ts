@@ -10,7 +10,7 @@ const ormConfig: TypeOrmModuleOptions = {
     database: process.env.POSTGRES_DATABASE,
     synchronize: true,
     autoLoadEntities: true,
-    // dropSchema: true,
+    dropSchema: false,
     logging: true,
     ssl:
         process.env.APP_ENV && process.env.APP_ENV != 'dev'

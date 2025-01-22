@@ -3,7 +3,6 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CustodianDBPopulate1737524138690 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-
         // Add roles
         await queryRunner.query(
             "INSERT INTO role_entity (name) VALUES ('ROOT'), ('ADMIN'), ('MANAGER'), ('VIEWER');",
@@ -91,7 +90,11 @@ export class CustodianDBPopulate1737524138690 implements MigrationInterface {
                 (SELECT id FROM organization_type_entity WHERE name='CERTIFIER')\
             );",
         );
-
+        //will be removed later
+        await queryRunner.query(`
+            UPDATE guardian_role_entity
+            SET name = LOWER(name)
+          `);
         // Add gov root user
         await queryRunner.query(
             "INSERT INTO users_entity ( \
