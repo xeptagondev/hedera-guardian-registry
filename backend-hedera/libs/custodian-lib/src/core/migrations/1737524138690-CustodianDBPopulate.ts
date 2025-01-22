@@ -92,11 +92,7 @@ export class CustodianDBPopulate1737524138690 implements MigrationInterface {
                 (SELECT id FROM organization_type_entity WHERE name='${OrganizationTypeEnum.CERTIFIER}')\
             );`,
         );
-        //will be removed later
-        await queryRunner.query(`
-            UPDATE guardian_role_entity
-            SET name = LOWER(name)
-          `);
+
         // Add gov root user
         await queryRunner.query(
             "INSERT INTO users_entity ( \
@@ -122,6 +118,15 @@ export class CustodianDBPopulate1737524138690 implements MigrationInterface {
             UPDATE users_entity
             SET guardian_role_id = (SELECT id FROM guardian_role_entity WHERE name='government_root')
           `);
+
+        //will be removed later
+        await queryRunner.query(`
+            UPDATE guardian_role_entity
+            SET name = LOWER(name);
+          `);
+        await queryRunner.query(
+            `update organization_entity set state='1' where id=1;`,
+        );
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {}
