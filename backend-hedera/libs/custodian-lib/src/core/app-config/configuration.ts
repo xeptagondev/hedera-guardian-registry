@@ -22,31 +22,31 @@ export default () => ({
     blocks: {
         group: {
             group: 'create_organization',
-            Developer: 'developer_organization_creation',
-            Government: 'government_organization_creation',
-            Ministry: 'ministry_organization_creation',
-            Certifier: 'certifier_organization_creation',
+            DEVELOPER: 'developer_organization_creation',
+            GOVERNMENT: 'government_organization_creation',
+            MINISTRY: 'ministry_organization_creation',
+            CERTIFIER: 'certifier_organization_creation',
         },
         user: {
-            Developer: 'developer_root_registration',
-            Government: 'government_root_registration',
-            Ministry: 'ministry_root_registration',
-            Certifier: 'certifier_root_registration',
+            DEVELOPER: 'developer_root_registration',
+            GOVERNMENT: 'government_root_registration',
+            MINISTRY: 'ministry_root_registration',
+            CERTIFIER: 'certifier_root_registration',
         },
 
         registration: {
             government_admin: 'government_admin_registration',
         },
         approve: {
-            Developer: 'developer_organization_approve_reject_button',
-            Ministry: 'ministry_organization_approve_reject_button',
-            Certifier: 'certifier_organization_approve_reject_button',
+            DEVELOPER: 'developer_organization_approve_reject_button',
+            MINISTRY: 'ministry_organization_approve_reject_button',
+            CERTIFIER: 'certifier_organization_approve_reject_button',
         },
         invite: {
-            Government: 'government_root_group_manager',
-            Developer: 'developer_root_group_manager',
-            Ministry: 'ministry_root_group_manager',
-            Certifier: 'certifier_root_group_manager',
+            GOVERNMENT: 'government_root_group_manager',
+            DEVELOPER: 'developer_root_group_manager',
+            MINISTRY: 'ministry_root_group_manager',
+            CERTIFIER: 'certifier_root_group_manager',
         },
     },
     metadata: {
