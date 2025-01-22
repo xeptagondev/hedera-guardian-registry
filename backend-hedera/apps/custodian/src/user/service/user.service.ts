@@ -375,6 +375,12 @@ export class UserService extends SuperService {
                     },
                 },
             );
+            await this.organizationRepository.update(
+                {
+                    id: orgEntity.id,
+                },
+                { state: OrganizationStateEnum.ACTIVE },
+            );
             return groupApproveResponse;
         } catch (e) {
             throw e;
