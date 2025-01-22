@@ -21,7 +21,7 @@ import { OrganisationApproveDto } from '@app/common-lib/shared/organization/dto/
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 
 @Injectable()
-export class UserService extends SuperService implements OnModuleInit {
+export class UserService extends SuperService {
     constructor(
         protected readonly auditService: AuditService,
         protected readonly utilService: UtilService,
@@ -39,9 +39,7 @@ export class UserService extends SuperService implements OnModuleInit {
     ) {
         super(auditService);
     }
-    async onModuleInit() {
-        await this.setTagToIdMap();
-    }
+
     private tagToIdMap: Record<string, string> = {};
     async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
@@ -203,6 +201,7 @@ export class UserService extends SuperService implements OnModuleInit {
 
     async register(userDto: UsersDTO) {
         try {
+            await this.setTagToIdMap();
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
@@ -372,6 +371,7 @@ export class UserService extends SuperService implements OnModuleInit {
 
     async approve(id: number, organizationApproveDto: OrganisationApproveDto) {
         try {
+            await this.setTagToIdMap();
             const orgEntity: OrganizationEntity =
                 await this.organizationRepository.findOne({
                     where: {
@@ -381,7 +381,6 @@ export class UserService extends SuperService implements OnModuleInit {
                         organizationType: true,
                     },
                 });
-
             const groupApproveResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${orgEntity.organizationType.name}`))}`,
                 orgEntity.payload,
@@ -398,9 +397,8 @@ export class UserService extends SuperService implements OnModuleInit {
                 },
                 { state: OrganizationStateEnum.ACTIVE },
             );
-            return groupApproveResponse;
+            return groupApproveResponse.data;
         } catch (e) {
-            console.log(`\n\n${e}`);
             throw e;
         }
     }
