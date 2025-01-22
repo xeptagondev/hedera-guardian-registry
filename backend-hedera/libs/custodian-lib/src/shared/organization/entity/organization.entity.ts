@@ -20,6 +20,9 @@ export class OrganizationEntity {
     @Column({ nullable: true })
     group?: string;
 
+    @Column({ nullable: true })
+    payload?: string;
+
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {
         nullable: true,
     })

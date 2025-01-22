@@ -17,6 +17,7 @@ import { RoleEntity } from '@app/custodian-lib/shared/role/entity/role.entity';
 import { OrganizationEntity } from '@app/custodian-lib/shared/organization/entity/organization.entity';
 import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-type/entity/organization-type.entity';
 import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
+import { OrganisationApproveDto } from '@app/common-lib/shared/organization/dto/approve.dto';
 
 @Injectable()
 export class UserService extends SuperService {
@@ -199,7 +200,6 @@ export class UserService extends SuperService {
     async register(userDto: UsersDTO) {
         await this.setTagToIdMap();
         try {
-            console.log(this.tagToIdMap);
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
@@ -360,6 +360,26 @@ export class UserService extends SuperService {
         }
     }
 
+    async approve(id: number, organizationApproveDto: OrganisationApproveDto) {
+        try {
+            const orgEntity: OrganizationEntity =
+                await this.organizationRepository.findOneBy({ id: id });
+            const groupApproveResponse = await axios.post(
+                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${orgEntity.organizationType.name}`))}`,
+                JSON.parse(orgEntity.payload),
+                {
+                    headers: {
+                        Authorization: `Bearer ${await this.accessToken(organizationApproveDto.refreshToken)}`,
+                        'Content-Type': 'application/json',
+                    },
+                },
+            );
+            return groupApproveResponse;
+        } catch (e) {
+            throw e;
+        }
+    }
+
     private async registerGroup(userDto: UsersDTO, userLoginResponse) {
         try {
             // 1. Create a new group type in guardian
@@ -441,17 +461,17 @@ export class UserService extends SuperService {
             );
 
             // // 4. Send request for approval
+            await this.organizationRepository.update(
+                {
+                    id: orgEntity.id,
+                },
+                { payload: JSON.stringify(payload) },
+            );
             if (userDto.refreshToken) {
-                const groupApproveResponse = await axios.post(
-                    `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${userDto.company.companyRole}`))}`,
-                    payload,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${await this.accessToken(userDto.refreshToken)}`,
-                            'Content-Type': 'application/json',
-                        },
-                    },
-                );
+                this.approve(orgEntity.id, {
+                    refreshToken: userDto.refreshToken,
+                    remarks: '',
+                });
             }
 
             // II. Update user
