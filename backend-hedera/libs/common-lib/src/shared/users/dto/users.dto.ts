@@ -5,7 +5,6 @@ import { RoleEnum } from '../../role/enum/role.enum';
 export class UsersDTO {
     id: number;
     email: string;
-    username: string;
     name: string;
     phoneNumber?: string;
     group: string;

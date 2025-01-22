@@ -24,7 +24,7 @@ export class UserService {
             );
             return response.data;
         } catch (error) {
-            console.error('Error occurred while sending POST request:', error);
+            throw error;
         }
     }
 

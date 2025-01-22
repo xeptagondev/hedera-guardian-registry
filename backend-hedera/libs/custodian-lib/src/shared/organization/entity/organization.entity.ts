@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { UsersEntity } from '../../users/entity/users.entity';
 import { OrganizationTypeEntity } from '../../organization-type/entity/organization-type.entity';
+import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 
 @Entity()
 export class OrganizationEntity {
@@ -17,8 +18,11 @@ export class OrganizationEntity {
     @Column()
     name: string;
 
-    // @Column({ name: 'organization_type_id' })
-    // organizationTypeId: number;
+    @Column({ nullable: true })
+    group?: string;
+
+    @Column({ nullable: true })
+    payload?: string;
 
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {
         nullable: true,
@@ -28,8 +32,16 @@ export class OrganizationEntity {
     @ManyToOne(
         () => OrganizationTypeEntity,
         (organizationTypeEntity) => organizationTypeEntity.organizations,
-        { nullable: false },
+        { nullable: true },
     )
     @JoinColumn([{ name: 'organization_type_id', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
+
+    @Column({
+        type: 'enum',
+        enum: OrganizationStateEnum,
+        nullable: false,
+        default: OrganizationStateEnum.PENDING,
+    })
+    state: OrganizationStateEnum;
 }

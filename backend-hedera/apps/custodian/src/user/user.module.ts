@@ -7,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersEntity } from '@app/custodian-lib/shared/users/entity/users.entity';
 import { OrganizationEntity } from '@app/custodian-lib/shared/organization/entity/organization.entity';
 import { UsersModule } from '@app/common-lib/shared/users/users.module';
-import { OrganizationModule } from '../organization/organization.module';
 import { OrganizationTypeModule } from '@app/custodian-lib/shared/organization-type/organization-type.module';
 import { RoleModule } from '@app/common-lib/shared/role/role.module';
 import { GuardianRoleModule } from '@app/custodian-lib/shared/guardian-role/guardian-role.module';
@@ -29,10 +28,10 @@ import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-t
         AuditModule,
         UtilModule,
         UsersModule,
-        OrganizationModule,
         OrganizationTypeModule,
         RoleModule,
         GuardianRoleModule,
     ],
+    exports: [UserService],
 })
 export class UserModule {}
