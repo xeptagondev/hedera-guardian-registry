@@ -19,6 +19,7 @@ import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-t
 import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
 import { OrganisationApproveDto } from '@app/common-lib/shared/organization/dto/approve.dto';
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
+import { RoleEnum } from '@app/common-lib/shared/role/enum/role.enum';
 
 @Injectable()
 export class UserService extends SuperService {
@@ -503,7 +504,7 @@ export class UserService extends SuperService {
                 },
                 { payload: payload },
             );
-            if (userDto.refreshToken) {
+            if (userDto.role === RoleEnum.Admin) {
                 await this.approve(orgEntity.id, {
                     refreshToken: userDto.refreshToken,
                     remarks: '',
