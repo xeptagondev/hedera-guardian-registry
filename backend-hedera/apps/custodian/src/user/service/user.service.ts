@@ -18,6 +18,7 @@ import { OrganizationEntity } from '@app/custodian-lib/shared/organization/entit
 import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-type/entity/organization-type.entity';
 import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
 import { OrganisationApproveDto } from '@app/common-lib/shared/organization/dto/approve.dto';
+import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 
 @Injectable()
 export class UserService extends SuperService {
@@ -425,6 +426,7 @@ export class UserService extends SuperService {
             let orgEntity: OrganizationEntity = {
                 name: userDto.company.name,
                 organizationType: orgType,
+                state: OrganizationStateEnum.PENDING,
             };
 
             // iii. Save organization
