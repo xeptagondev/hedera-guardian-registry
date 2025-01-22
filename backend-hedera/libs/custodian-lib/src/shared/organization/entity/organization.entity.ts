@@ -21,7 +21,11 @@ export class OrganizationEntity {
     @Column({ nullable: true })
     group?: string;
 
-    @Column({ nullable: true })
+    @Column({
+        type: 'jsonb',
+        array: false,
+        nullable: true,
+    })
     payload?: string;
 
     @OneToMany(() => UsersEntity, (usersEntity) => usersEntity.organization, {

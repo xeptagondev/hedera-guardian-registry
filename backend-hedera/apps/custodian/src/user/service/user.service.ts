@@ -1,5 +1,5 @@
 import { LoginDto } from '@app/common-lib/shared/login/dto/login.dto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
@@ -39,6 +39,7 @@ export class UserService extends SuperService {
     ) {
         super(auditService);
     }
+
     private tagToIdMap: Record<string, string> = {};
     async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
@@ -148,7 +149,7 @@ export class UserService extends SuperService {
     }
 
     async createPayload(response: any, role: string) {
-        return {
+        return JSON.stringify({
             document: {
                 createDate: new Date().toISOString(),
                 updateDate: new Date().toISOString(),
@@ -185,7 +186,7 @@ export class UserService extends SuperService {
                 id: await this.generateUUID24(),
             },
             tag: 'Button_0',
-        };
+        });
     }
 
     private async setTagToIdMap() {
@@ -199,8 +200,8 @@ export class UserService extends SuperService {
     }
 
     async register(userDto: UsersDTO) {
-        await this.setTagToIdMap();
         try {
+            await this.setTagToIdMap();
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
@@ -370,6 +371,7 @@ export class UserService extends SuperService {
 
     async approve(id: number, organizationApproveDto: OrganisationApproveDto) {
         try {
+            await this.setTagToIdMap();
             const orgEntity: OrganizationEntity =
                 await this.organizationRepository.findOne({
                     where: {
@@ -379,10 +381,9 @@ export class UserService extends SuperService {
                         organizationType: true,
                     },
                 });
-
             const groupApproveResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${orgEntity.organizationType.name}`))}`,
-                JSON.parse(orgEntity.payload),
+                orgEntity.payload,
                 {
                     headers: {
                         Authorization: `Bearer ${await this.accessToken(organizationApproveDto.refreshToken)}`,
@@ -396,7 +397,7 @@ export class UserService extends SuperService {
                 },
                 { state: OrganizationStateEnum.ACTIVE },
             );
-            return groupApproveResponse;
+            return groupApproveResponse.data;
         } catch (e) {
             throw e;
         }
@@ -497,10 +498,10 @@ export class UserService extends SuperService {
                 {
                     id: orgEntity.id,
                 },
-                { payload: JSON.stringify(payload) },
+                { payload: payload },
             );
             if (userDto.refreshToken) {
-                this.approve(orgEntity.id, {
+                await this.approve(orgEntity.id, {
                     refreshToken: userDto.refreshToken,
                     remarks: '',
                 });

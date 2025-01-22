@@ -10,13 +10,13 @@ export default () => ({
         policies: '/api/v1/policies/',
     },
     policy: {
-        id: '678f5494cb0885d35f1ebd75',
-        topicId: '0.0.5411343',
+        id: '6790a931671ff72cb9b56754',
+        topicId: '0.0.5415758',
     },
     sru: {
         username: 'amilareg',
         password: '123456',
-        did: 'did:hedera:testnet:Hd3Q9whzRsi8YbEuJDVt1pnixzLJ888HhCBoa2Ba8TCi_0.0.5399395',
+        did: 'did:hedera:testnet:Hd3Q9whzRsi8YbEuJDVt1pnixzLJ888HhCBoa2Ba8TCi_0.0.5415745',
     },
 
     blocks: {
