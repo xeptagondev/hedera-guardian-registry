@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { UtilModule } from './util/util.module';
 
 @Module({
-    imports: [],
+    imports: [UtilModule],
     providers: [],
 })
 export class SharedModule {}

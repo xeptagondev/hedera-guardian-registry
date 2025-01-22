@@ -4,8 +4,8 @@ import { CoreModule } from './core/core.module';
 import { SharedModule } from './shared/shared.module';
 
 @Module({
-  providers: [ApiLibService],
-  exports: [ApiLibService],
-  imports: [CoreModule, SharedModule],
+    providers: [ApiLibService],
+    exports: [ApiLibService, CoreModule, SharedModule],
+    imports: [CoreModule, SharedModule],
 })
 export class ApiLibModule {}
