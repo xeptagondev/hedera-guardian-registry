@@ -154,6 +154,7 @@ export class UserService {
 
         return this.jwtService.signAsync(instanceToPlain(payload), {
             secret: this.configService.get<string>('apiJwt.secret'),
+            expiresIn: this.configService.get<string>('apiJwt.expireTimeout'),
         });
     }
 
