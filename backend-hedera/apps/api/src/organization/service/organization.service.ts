@@ -10,9 +10,8 @@ export class OrganizationService {
     constructor(private readonly configService: ConfigService) {}
     async approve(id: string, organizationApproveDto: OrganisationApproveDto) {
         try {
-            const response = await axios.post(
-                `${this.configService.get('url')}
-                    ${this.configService.get('organisation.approve')}?id=${id}`,
+            const response = await axios.put(
+                `${this.configService.get('url')}/organization/approve/${id}`,
                 organizationApproveDto,
             );
             return response.data;

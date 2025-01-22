@@ -10,6 +10,10 @@ export default () => ({
         expireTimeout: process.env.API_JWT_EXPIRE || '7200s',
         refreshTokenSecret:
             process.env.API_REFRESH_TOKEN_SECRET || 'api_refresh_token_secret',
-        refreshTokenExpireTimeout: process.env.API_REFRESH_TOKEN_EXPIRE || '7200s',
+        refreshTokenExpireTimeout:
+            process.env.API_REFRESH_TOKEN_EXPIRE || '7200s',
+    },
+    organization: {
+        approve: '/organization/approve',
     },
 });
