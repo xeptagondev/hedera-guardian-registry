@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { UsersEntity } from '../../users/entity/users.entity';
 import { OrganizationTypeEntity } from '../../organization-type/entity/organization-type.entity';
+import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 
 @Entity()
 export class OrganizationEntity {
@@ -32,4 +33,12 @@ export class OrganizationEntity {
     )
     @JoinColumn([{ name: 'organizationType', referencedColumnName: 'id' }])
     organizationType: OrganizationTypeEntity;
+
+    @Column({
+        type: 'enum',
+        enum: OrganizationStateEnum,
+        nullable: false,
+        default: OrganizationStateEnum.PENDING,
+    })
+    state: OrganizationStateEnum;
 }
