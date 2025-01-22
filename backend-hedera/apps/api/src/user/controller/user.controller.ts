@@ -14,6 +14,11 @@ export class UserController {
     }
 
     @Post('add')
+    async add(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
+        return this.userService.add(userDto, req);
+    }
+
+    @Post('register')
     async register(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
         return this.userService.add(userDto, req);
     }

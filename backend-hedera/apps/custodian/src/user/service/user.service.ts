@@ -201,7 +201,6 @@ export class UserService extends SuperService {
         try {
             console.log(this.tagToIdMap);
             // 1: Login SRU and Gov. Root
-            console.log('$$$$$1');
             const sruLoginResponse = await this.login({
                 username: this.configService.get('sru.username'),
                 password: this.configService.get('sru.password'),
@@ -211,13 +210,12 @@ export class UserService extends SuperService {
             const registerResponse = await axios.post(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.register')}`,
                 {
-                    username: userDto.username,
+                    username: userDto.email,
                     password: userDto.password, // This needs to be a password with SALT from API side
                     password_confirmation: userDto.password,
                     role: 'USER',
                 },
             );
-            console.log('$$$$$3');
 
             const userEntity: UsersEntity = {
                 email: userDto.email,
@@ -232,44 +230,40 @@ export class UserService extends SuperService {
 
             // 3. User login to the guardian backend
             const userLoginResponse = await this.login({
-                username: userDto.username,
+                username: userDto.email,
                 password: userDto.password,
             });
 
-            try {
-                // 4. Update the user profile with the parent (SRU)
-                const updateResponse = await axios.put(
-                    `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}/${userDto.username}`,
-                    {
-                        parent: this.configService.get('sru.did'),
-                        hederaAccountId: userDto.hederaAccount,
-                        hederaAccountKey: userDto.hederaKey,
-                        useFireblocksSigning: false,
-                        fireblocksConfig: {
-                            fireBlocksVaultId: '',
-                            fireBlocksAssetId: '',
-                            fireBlocksApiKey: '',
-                            fireBlocksPrivateiKey: '',
-                        },
+            // 4. Update the user profile with the parent (SRU)
+            const updateResponse = await axios.put(
+                `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}/${userDto.email}`,
+                {
+                    parent: this.configService.get('sru.did'),
+                    hederaAccountId: userDto.hederaAccount,
+                    hederaAccountKey: userDto.hederaKey,
+                    useFireblocksSigning: false,
+                    fireblocksConfig: {
+                        fireBlocksVaultId: '',
+                        fireBlocksAssetId: '',
+                        fireBlocksApiKey: '',
+                        fireBlocksPrivateiKey: '',
                     },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${await this.accessToken(
-                                userLoginResponse.refreshToken,
-                            )}`,
-                            'Content-Type': 'application/json',
-                        },
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${await this.accessToken(
+                            userLoginResponse.refreshToken,
+                        )}`,
+                        'Content-Type': 'application/json',
                     },
-                );
-            } catch (e) {
-                console.log(e.data);
-            }
+                },
+            );
+
             await this.delay(10000);
 
             // 5. Assign the policy for the user
-            console.log(sruLoginResponse);
             const policyAssignResponse = await axios.post(
-                `${this.configService.get('guardian.url')}${this.configService.get('guardian.policyAsign1')}/${userDto.username}${this.configService.get('guardian.policyAsign2')}`,
+                `${this.configService.get('guardian.url')}${this.configService.get('guardian.policyAsign1')}/${userDto.email}${this.configService.get('guardian.policyAsign2')}`,
                 {
                     policyIds: [this.configService.get('policy.id')],
                     assign: true,
@@ -382,9 +376,6 @@ export class UserService extends SuperService {
                     },
                 },
             );
-            console.log(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.group.${userDto.company.companyRole}`))}`,
-            );
 
             await this.delay(5000);
             const createOrganizationResponse = await axios.post(
@@ -420,14 +411,7 @@ export class UserService extends SuperService {
             orgEntity = await this.organizationRepository.save(orgEntity);
 
             // 2. Create a group (organization) => Create the organization of org type
-            console.log(
-                this.configService.get(
-                    `blocks.user.${userDto.company.companyRole}`,
-                ),
-            );
-            console.log(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.user.${userDto.company.companyRole}`))}`,
-            );
+
             await this.delay(10000);
             const createGroupResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.user.${userDto.company.companyRole}`))}`,
@@ -457,16 +441,18 @@ export class UserService extends SuperService {
             );
 
             // // 4. Send request for approval
-            const groupApproveResponse = await axios.post(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${userDto.company.companyRole}`))}`,
-                payload,
-                {
-                    headers: {
-                        Authorization: `Bearer ${await this.accessToken(userDto.refreshToken)}`,
-                        'Content-Type': 'application/json',
+            if (userDto.refreshToken) {
+                const groupApproveResponse = await axios.post(
+                    `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${userDto.company.companyRole}`))}`,
+                    payload,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${await this.accessToken(userDto.refreshToken)}`,
+                            'Content-Type': 'application/json',
+                        },
                     },
-                },
-            );
+                );
+            }
 
             // II. Update user
             // i. Get role entity
