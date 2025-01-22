@@ -41,6 +41,7 @@ export class UserService extends SuperService {
     }
 
     private tagToIdMap: Record<string, string> = {};
+    private refreshTokens: Record<string, string> = {};
     async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
             console.log(`Company not provided for ${userDTO.email}`);
@@ -111,6 +112,8 @@ export class UserService extends SuperService {
                     console.error(`Failed to add log: "${message}"`, error);
                 }
             }
+            this.refreshTokens[loginDto.username] =
+                response?.data?.refreshToken;
             return response.data;
         } catch (error) {
             console.error('Error occurred while sending POST request:', error);

@@ -504,7 +504,7 @@ export const AddNewCompanyComponent = (props: any) => {
           setLoading(false);
         }
       } else {
-        const response = await post('national/user/add', requestData);
+        const response = await post('user/add', requestData);
         if (response.status === 200 || response.status === 201) {
           if (isUpdate) {
             setUserInfo({
@@ -1329,7 +1329,7 @@ export const AddNewCompanyComponent = (props: any) => {
                       initialValue={state?.record?.provinces ?? []}
                       rules={[
                         {
-                          required: true,
+                          required: false,
                           message: `${t('addCompany:province')} ${t('isRequired')}`,
                         },
                       ]}
