@@ -1,6 +1,6 @@
 export enum OrganizationTypeEnum {
-    GOVERNMENT = 'GOVERNMENT',
-    DEVELOPER = 'DEVELOPER',
-    CERTIFIER = 'CERTIFIER',
-    MINISTRY = 'MINISTRY',
+    GOVERNMENT = 'Government',
+    PROGRAMME_DEVELOPER = 'ProgrammeDeveloper',
+    CERTIFIER = 'Certifier',
+    MINISTRY = 'Ministry',
 }
