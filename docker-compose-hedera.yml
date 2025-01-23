@@ -16,7 +16,7 @@ services:
       POSTGRES_PASSWORD: "123"
       POSTGRES_USER: root
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./backend-hedera/init.sql:/docker-entrypoint-initdb.d/init.sql
       - data:/data/postgres
 
   api:
@@ -28,9 +28,10 @@ services:
       - "3001:3001"
     depends_on:
       - hedera_db
+      - custodian
     environment:
       API_PORT: 3001
-      CUSTODIAN_URL: "http://127.0.0.1:3002"
+      CUSTODIAN_URL: "http://custodian:3002"
       DB_HOST: hedera_db
       DB_PORT: 5432
       DB_USERNAME: root
