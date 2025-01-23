@@ -6,10 +6,16 @@ import { OrganizationModule } from './organization/organization.module';
 import { CoreModule } from '@app/api-lib/core/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from '@app/custodian-lib/core/app-config/orm-config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot(ormConfig),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) =>
+                ormConfig(configService),
+        }),
         UserModule,
         OrganizationModule,
         CoreModule,

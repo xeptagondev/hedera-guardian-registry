@@ -10,7 +10,7 @@ services:
     image: postgres
     restart: always
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_DB: hedera_db
       POSTGRES_PASSWORD: "123"
@@ -32,7 +32,7 @@ services:
       API_PORT: 3001
       CUSTODIAN_URL: "http://127.0.0.1:3002"
       DB_HOST: hedera_db
-      DB_PORT: 5433
+      DB_PORT: 5432
       DB_USERNAME: root
       DB_PASSWORD: "123"
       DB_NAME: hedera_db
@@ -52,9 +52,9 @@ services:
       - hedera_db
     environment:
       CUSTODIAN_PORT: 3002
-      GUARDIAN_URL: "http://3.93.78.104:3000/"
+      GUARDIAN_URL: "http://3.93.78.104:3000"
       DB_HOST: hedera_db
-      DB_PORT: 5433
+      DB_PORT: 5432
       DB_USERNAME: root
       DB_PASSWORD: "123"
       DB_NAME: hedera_db

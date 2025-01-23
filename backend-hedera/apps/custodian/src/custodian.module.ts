@@ -6,10 +6,17 @@ import { UserModule } from './user/user.module';
 import { CoreModule } from '@app/custodian-lib/core/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import ormConfig from '@app/custodian-lib/core/app-config/orm-config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot(ormConfig),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) =>
+                ormConfig(configService),
+        }),
         OrganizationModule,
         UserModule,
         CoreModule,
@@ -17,4 +24,8 @@ import ormConfig from '@app/custodian-lib/core/app-config/orm-config';
     controllers: [CustodianController],
     providers: [CustodianService],
 })
-export class CustodianModule {}
+export class CustodianModule {
+    constructor(private readonly connection: DataSource) {
+        this.connection.runMigrations();
+    }
+}
