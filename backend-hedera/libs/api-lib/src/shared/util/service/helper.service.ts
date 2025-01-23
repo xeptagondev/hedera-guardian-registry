@@ -3,6 +3,32 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class HelperService {
+    public mapNewWhereClausetoOldWhereClause(
+        query: QueryDto,
+        newToOldFieldMap: Record<string, string>,
+    ) {
+        if (query.filterAnd) {
+            for (const filterEntry of query.filterAnd) {
+                if (newToOldFieldMap[filterEntry.key]) {
+                    filterEntry.key = newToOldFieldMap[filterEntry.key];
+                }
+            }
+        }
+        if (query.filterOr) {
+            for (const filterEntry of query.filterOr) {
+                if (newToOldFieldMap[filterEntry.key]) {
+                    filterEntry.key = newToOldFieldMap[filterEntry.key];
+                }
+            }
+        }
+        if (query.sort) {
+            if (newToOldFieldMap[query.sort.key]) {
+                query.sort.key = newToOldFieldMap[query.sort.key];
+            }
+        }
+        return query;
+    }
+
     private prepareValue(value: any, table?: string, toLower?: boolean) {
         if (value instanceof Array) {
             return '(' + value.map((e) => `'${e}'`).join(',') + ')';
