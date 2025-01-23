@@ -1,5 +1,7 @@
+import { JWTPayload } from '@app/common-lib/shared/login/dto/jwt.payload.dto';
+import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 import { QueryDto } from '@app/common-lib/shared/query/dto/query.dto';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class HelperService {
@@ -27,6 +29,21 @@ export class HelperService {
             }
         }
         return query;
+    }
+
+    public validateRequestUser(requestUser: JWTPayload) {
+        if (!requestUser) {
+            throw new HttpException(
+                'Not Authorized User',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+        if (requestUser.organizationState != OrganizationStateEnum.ACTIVE) {
+            throw new HttpException(
+                'Organization Not Authorized',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
     }
 
     private prepareValue(value: any, table?: string, toLower?: boolean) {

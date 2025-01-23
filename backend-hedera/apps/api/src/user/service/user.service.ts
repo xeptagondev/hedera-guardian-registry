@@ -80,12 +80,7 @@ export class UserService {
         query: QueryDto,
         requestUser: JWTPayload,
     ): Promise<DataListResponseDto> {
-        if (requestUser.organizationState != OrganizationStateEnum.ACTIVE) {
-            throw new HttpException(
-                'Organization Not Authorized',
-                HttpStatus.UNAUTHORIZED,
-            );
-        }
+        this.helperService.validateRequestUser(requestUser);
         if (
             !(
                 requestUser.organizationRole ==

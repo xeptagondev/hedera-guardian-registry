@@ -10,6 +10,7 @@ COPY yarn.lock .
 
 # Install app dependencies
 RUN yarn install
+RUN yarn add concurrently@8.2.2
 # Bundle app source 
 COPY . .
 
