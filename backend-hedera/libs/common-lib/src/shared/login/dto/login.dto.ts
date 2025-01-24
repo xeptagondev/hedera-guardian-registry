@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
     IsEmpty,
     IsEnum,
@@ -11,6 +12,10 @@ import {
 
 export class LoginDto {
     @ApiProperty()
+    @IsNotEmpty()
+    @Transform(({ value }) =>
+        typeof value === 'string' ? value.trim().toLowerCase() : value,
+    )
     @IsNotEmpty()
     username: string;
 
