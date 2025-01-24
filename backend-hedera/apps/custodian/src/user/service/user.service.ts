@@ -1,5 +1,10 @@
 import { LoginDto } from '@app/common-lib/shared/login/dto/login.dto';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+    HttpException,
+    HttpStatus,
+    Injectable,
+    OnModuleInit,
+} from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
@@ -109,15 +114,23 @@ export class UserService extends SuperService {
                 };
                 try {
                     await this.auditService.save(auditLog);
+                    this.refreshTokens[loginDto.username] =
+                        response?.data?.refreshToken;
+                    return response.data;
                 } catch (error) {
                     console.error(`Failed to add log: "${message}"`, error);
                 }
+            } else {
+                throw new HttpException(
+                    'Guardian User Login Failed',
+                    HttpStatus.UNAUTHORIZED,
+                );
             }
-            this.refreshTokens[loginDto.username] =
-                response?.data?.refreshToken;
-            return response.data;
         } catch (error) {
-            console.error('Error occurred while sending POST request:', error);
+            throw new HttpException(
+                'Guardian User Login Failed',
+                HttpStatus.UNAUTHORIZED,
+            );
         }
     }
 

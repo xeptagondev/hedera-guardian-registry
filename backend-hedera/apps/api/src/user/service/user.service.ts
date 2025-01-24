@@ -283,13 +283,24 @@ export class UserService {
                 HttpStatus.UNAUTHORIZED,
             );
         }
+        let custodianResponse: any;
+        try {
+            custodianResponse = await axios.post(
+                this.configService.get('url') +
+                    this.configService.get('user.login'),
+                loginDto,
+            );
+        } catch (e) {
+            throw new HttpException(
+                'Guardian User Login Failed',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
 
-        const custodianResponse = await axios.post(
-            this.configService.get('url') +
-                this.configService.get('user.login'),
-            loginDto,
-        );
-        if (custodianResponse.status == HttpStatus.CREATED) {
+        if (
+            custodianResponse &&
+            custodianResponse.status == HttpStatus.CREATED
+        ) {
             const organization = await this.organizationsRepository.findOne({
                 where: { id: user.organization.id },
                 relations: {
