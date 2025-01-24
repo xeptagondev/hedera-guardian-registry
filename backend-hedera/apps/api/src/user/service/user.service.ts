@@ -18,6 +18,7 @@ import { JWTPayload } from '@app/common-lib/shared/login/dto/jwt.payload.dto';
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 import { instanceToPlain } from 'class-transformer';
 import { OrganizationTypeEnum } from '@app/common-lib/shared/organization-type/enum/organization-type.enum';
+import { RoleEnum } from '@app/common-lib/shared/role/enum/role.enum';
 
 @Injectable()
 export class UserService {
@@ -151,24 +152,28 @@ export class UserService {
         );
     }
 
-    async add(userDto: UsersDTO, user: any) {
-        try {
-            const custodianResponse = await axios.post(
-                this.configService.get('url') +
-                    this.configService.get('user.add'),
-                userDto,
-            );
-            if (custodianResponse.status == HttpStatus.CREATED) {
-                return custodianResponse.data;
-            } else {
-                throw new HttpException(
-                    'Error occured with Guardian connection',
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                );
-            }
-        } catch (error) {
+    async add(userDto: UsersDTO, requestUser: JWTPayload) {
+        this.helperService.validateRequestUser(requestUser);
+        if (
+            !(
+                requestUser.userRole == RoleEnum.Root ||
+                requestUser.userRole == RoleEnum.Admin
+            )
+        ) {
             throw new HttpException(
-                'Error occurred while sending POST request:',
+                'User Not Authorized to Add user',
+                HttpStatus.FORBIDDEN,
+            );
+        }
+        const custodianResponse = await axios.post(
+            this.configService.get('url') + this.configService.get('user.add'),
+            userDto,
+        );
+        if (custodianResponse.status == HttpStatus.CREATED) {
+            return custodianResponse.data;
+        } else {
+            throw new HttpException(
+                'Error occured with connection',
                 HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
@@ -292,7 +297,7 @@ export class UserService {
             );
         } catch (e) {
             throw new HttpException(
-                'Guardian User Login Failed',
+                'Email or Password is Incorrect',
                 HttpStatus.UNAUTHORIZED,
             );
         }
