@@ -20,11 +20,13 @@ export class UserController {
         return this.userService.refreshToken(refreshLogin.refreshToken);
     }
 
+    @UseGuards(AuthGuardService)
     @Post('add')
     async add(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
-        return this.userService.add(userDto, req);
+        return this.userService.add(userDto, req.user);
     }
 
+    @UseGuards(AuthGuardService)
     @Post('register')
     async register(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
         return this.userService.add(userDto, req);

@@ -19,6 +19,7 @@ import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-t
 import { UtilService } from '@app/custodian-lib/shared/util/service/util.service';
 import { OrganisationApproveDto } from '@app/common-lib/shared/organization/dto/approve.dto';
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
+import { RoleEnum } from '@app/common-lib/shared/role/enum/role.enum';
 
 @Injectable()
 export class UserService extends SuperService {
@@ -41,6 +42,7 @@ export class UserService extends SuperService {
     }
 
     private tagToIdMap: Record<string, string> = {};
+    private refreshTokens: Record<string, string> = {};
     async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
             console.log(`Company not provided for ${userDTO.email}`);
@@ -111,6 +113,8 @@ export class UserService extends SuperService {
                     console.error(`Failed to add log: "${message}"`, error);
                 }
             }
+            this.refreshTokens[loginDto.username] =
+                response?.data?.refreshToken;
             return response.data;
         } catch (error) {
             console.error('Error occurred while sending POST request:', error);
@@ -500,7 +504,7 @@ export class UserService extends SuperService {
                 },
                 { payload: payload },
             );
-            if (userDto.refreshToken) {
+            if (userDto.role === RoleEnum.Admin) {
                 await this.approve(orgEntity.id, {
                     refreshToken: userDto.refreshToken,
                     remarks: '',

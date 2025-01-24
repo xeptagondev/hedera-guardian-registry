@@ -1,6 +1,6 @@
 export enum RoleEnum {
-    ROOT = 'ROOT',
-    ADMIN = 'ADMIN',
-    MANAGER = 'MANAGER',
-    VIEWER = 'VIEWER',
+    Root = 'Root',
+    Admin = 'Admin',
+    Manager = 'Manager',
+    ViewOnly = 'ViewOnly',
 }

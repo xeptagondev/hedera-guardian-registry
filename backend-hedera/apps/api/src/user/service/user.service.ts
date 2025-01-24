@@ -17,6 +17,7 @@ import { HelperService } from '@app/api-lib/shared/util/service/helper.service';
 import { JWTPayload } from '@app/common-lib/shared/login/dto/jwt.payload.dto';
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 import { instanceToPlain } from 'class-transformer';
+import { OrganizationTypeEnum } from '@app/common-lib/shared/organization-type/enum/organization-type.enum';
 
 @Injectable()
 export class UserService {
@@ -31,56 +32,123 @@ export class UserService {
         private readonly organizationsRepository: Repository<OrganizationEntity>,
     ) {}
 
-    async query(query: QueryDto, user: any): Promise<DataListResponseDto> {
-        try {
+    mapNewQueryToOldQuery(newUser: UsersEntity) {
+        return {
+            id: newUser.id,
+            email: newUser.email,
+            role: newUser.guardianRole?.role?.name ?? null,
+            name: newUser.name,
+            country: null,
+            phoneNo: newUser.phoneNumber,
+            companyId: newUser.organization?.id,
+            companyRole: newUser.guardianRole?.name ?? null,
+            createdTime: null,
+            isPending: false,
+            company: {
+                companyId: newUser.organization?.id,
+                name: newUser.organization?.name,
+                taxId: null,
+                paymentId: null,
+                email: null,
+                phoneNo: newUser.phoneNumber ?? null,
+                website: null,
+                address: null,
+                country: null,
+                logo: null,
+                companyRole: newUser.organization.organizationType.name,
+                state: newUser.organization.state,
+                creditBalance: null,
+                secondaryAccountBalance: null,
+                programmeCount: null,
+                lastUpdateVersion: null,
+                creditTxTime: null,
+                remarks: null,
+                createdTime: null,
+                geographicalLocationCordintes: null,
+                regions: null,
+                nameOfMinister: null,
+                sectoralScope: null,
+                omgePercentage: null,
+                nationalSopValue: null,
+                ministry: null,
+                govDep: null,
+            },
+        };
+    }
+
+    async query(
+        query: QueryDto,
+        requestUser: JWTPayload,
+    ): Promise<DataListResponseDto> {
+        this.helperService.validateRequestUser(requestUser);
+        if (
+            !(
+                requestUser.organizationRole ==
+                    OrganizationTypeEnum.GOVERNMENT ||
+                requestUser.organizationRole == OrganizationTypeEnum.MINISTRY
+            )
+        ) {
             if (query.filterAnd) {
-                if (
-                    !query.filterAnd.some(
-                        (filter) => filter.key === 'isPending',
-                    )
-                ) {
-                    query.filterAnd.push({
-                        key: 'isPending',
-                        operation: '=',
-                        value: false,
-                    });
-                }
+                query.filterAnd.push({
+                    key: 'organization"."id',
+                    operation: '=',
+                    value: requestUser.organizationId,
+                });
             } else {
                 const filterAnd: FilterEntry[] = [];
                 filterAnd.push({
-                    key: 'isPending',
+                    key: 'organization"."id',
                     operation: '=',
-                    value: false,
+                    value: requestUser.organizationId,
                 });
                 query.filterAnd = filterAnd;
             }
-
-            const resp = await this.usersRepository
-                .createQueryBuilder('user')
-                .where(this.helperService.generateWhereSQL(query))
-                .orderBy(
-                    query?.sort?.key && `"${query?.sort?.key}"`,
-                    query?.sort?.order,
-                    query?.sort?.nullFirst !== undefined
-                        ? query?.sort?.nullFirst === true
-                            ? 'NULLS FIRST'
-                            : 'NULLS LAST'
-                        : undefined,
-                )
-                .offset(query.size * query.page - query.size)
-                .limit(query.size)
-                .getManyAndCount();
-
-            return new DataListResponseDto(
-                resp.length > 0 ? resp[0] : undefined,
-                resp.length > 1 ? resp[1] : undefined,
-            );
-        } catch (e) {
-            throw new HttpException(
-                'Method not implemented.',
-                HttpStatus.INTERNAL_SERVER_ERROR,
-            );
         }
+
+        //Formatting Query
+        const newToOldFieldMap: Record<string, string> = {
+            id: 'user"."id',
+            name: 'user"."name',
+            email: 'user"."email',
+        };
+        query = this.helperService.mapNewWhereClausetoOldWhereClause(
+            query,
+            newToOldFieldMap,
+        );
+
+        const [entities, total] = await this.usersRepository
+            .createQueryBuilder('user')
+            .leftJoin('user.organization', 'organization')
+            .leftJoin('user.guardianRole', 'guardianRole')
+            .leftJoin('organization.organizationType', 'organizationType')
+            .leftJoin('guardianRole.role', 'role')
+            .addSelect([
+                'organization',
+                'guardianRole',
+                'role',
+                'organizationType',
+            ])
+            .where(this.helperService.generateWhereSQL(query))
+            .orderBy(
+                query?.sort?.key && `"${query?.sort?.key}"`,
+                query?.sort?.order,
+                query?.sort?.nullFirst !== undefined
+                    ? query?.sort?.nullFirst === true
+                        ? 'NULLS FIRST'
+                        : 'NULLS LAST'
+                    : undefined,
+            )
+            .offset(query.size * query.page - query.size)
+            .limit(query.size)
+            .getManyAndCount();
+
+        const oldFormatData = entities.map((user) =>
+            this.mapNewQueryToOldQuery(user),
+        );
+        return new DataListResponseDto(
+            entities ? oldFormatData : undefined,
+            total ? total : undefined,
+        );
     }
 
     async add(userDto: UsersDTO, user: any) {
@@ -149,7 +217,7 @@ export class UserService {
             user.guardianRole.role.name,
             user.organization.id,
             organisationDetails.organizationType.name,
-            parseInt(organisationDetails.state),
+            organisationDetails.state,
         );
 
         return this.jwtService.signAsync(instanceToPlain(payload), {

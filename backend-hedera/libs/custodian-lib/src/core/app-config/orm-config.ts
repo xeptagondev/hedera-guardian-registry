@@ -1,16 +1,17 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { CustodianDBPopulate1737524138690 } from '../migrations/1737524138690-CustodianDBPopulate';
+import { ConfigService } from '@nestjs/config';
 
-const ormConfig: TypeOrmModuleOptions = {
+const ormConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
     type: 'postgres',
-    host: process.env.POSTGRES_HOST,
-    port: Number(process.env.POSTGRES_PORT),
-    username: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DATABASE,
+    host: configService.get<string>('database.host'),
+    port: parseInt(configService.get<string>('database.port')),
+    username: configService.get<string>('database.username'),
+    password: configService.get<string>('database.password'),
+    database: configService.get<string>('database.database'),
     synchronize: true,
     autoLoadEntities: true,
-    // dropSchema: false,
+    dropSchema: false,
     logging: true,
     ssl:
         process.env.APP_ENV && process.env.APP_ENV != 'dev'
@@ -19,7 +20,7 @@ const ormConfig: TypeOrmModuleOptions = {
               }
             : false,
     migrations: [CustodianDBPopulate1737524138690],
-    migrationsRun: true,
-};
+    migrationsRun: false,
+});
 
 export default ormConfig;
