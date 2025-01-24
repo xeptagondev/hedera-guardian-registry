@@ -47,5 +47,5 @@ export class OrganizationEntity {
         nullable: false,
         default: OrganizationStateEnum.PENDING,
     })
-    state: OrganizationStateEnum;
+    state?: OrganizationStateEnum;
 }
