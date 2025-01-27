@@ -211,8 +211,6 @@ export class UserService extends SuperService<UsersEntity, UsersDTO> {
 
     async register(userDto: UsersDTO) {
         try {
-            console.log(userDto);
-            console.log(this.getRefreshToken(userDto.request.email));
             await this.setTagToIdMap();
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({

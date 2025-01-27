@@ -26,10 +26,10 @@ export class UserController {
         return this.userService.add(userDto, req.user);
     }
 
-    @UseGuards(AuthGuardService)
+    // @UseGuards(AuthGuardService)
     @Post('register')
-    async register(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
-        return this.userService.add(userDto, req);
+    async register(@Body() userDto: UsersDTO): Promise<any> {
+        return this.userService.add(userDto);
     }
 
     @UseGuards(AuthGuardService)

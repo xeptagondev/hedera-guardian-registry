@@ -12,7 +12,7 @@ export class UserController {
     }
 
     @Post('add')
-    async add(@Body() userDto: UsersDTO, @Request() req): Promise<any> {
+    async add(@Body() userDto: UsersDTO): Promise<any> {
         return this.userService.register(userDto);
     }
 }

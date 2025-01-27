@@ -152,13 +152,12 @@ export class UserService {
         );
     }
 
-    async add(userDto: UsersDTO, requestUser: JWTPayload) {
-        this.helperService.validateRequestUser(requestUser);
+    async add(userDto: UsersDTO, requestUser?: JWTPayload) {
+        // this.helperService.validateRequestUser(requestUser);
         if (
-            !(
-                requestUser.userRole == RoleEnum.Root ||
-                requestUser.userRole == RoleEnum.Admin
-            )
+            requestUser &&
+            (requestUser.userRole == RoleEnum.Root ||
+                requestUser.userRole == RoleEnum.Admin)
         ) {
             throw new HttpException(
                 'User Not Authorized to Add user',

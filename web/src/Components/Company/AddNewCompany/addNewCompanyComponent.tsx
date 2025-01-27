@@ -492,7 +492,7 @@ export const AddNewCompanyComponent = (props: any) => {
         requestData.company.name = 'Ministry of ' + requestData.company.ministry;
       }
       if (isGuest) {
-        const response = await post('national/user/register', requestData);
+        const response = await post('user/register', requestData);
         if (response.status === 200 || response.status === 201) {
           message.open({
             type: 'success',

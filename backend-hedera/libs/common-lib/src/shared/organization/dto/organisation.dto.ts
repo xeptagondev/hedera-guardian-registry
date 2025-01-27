@@ -8,5 +8,6 @@ export class OrganisationDto extends SuperDTO<OrganizationEntity> {
     id: number;
     @Unwrap()
     name: string;
+    @Unwrap()
     companyRole: OrganizationTypeEnum;
 }
