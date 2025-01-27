@@ -13,6 +13,7 @@ import { GuardianRoleModule } from '@app/custodian-lib/shared/guardian-role/guar
 import { GuardianRoleEntity } from '@app/custodian-lib/shared/guardian-role/entity/guardian-role.entity';
 import { RoleEntity } from '@app/custodian-lib/shared/role/entity/role.entity';
 import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-type/entity/organization-type.entity';
+import { CoreModule } from '@app/api-lib/core/core.module';
 
 @Module({
     providers: [UserService],
@@ -31,6 +32,7 @@ import { OrganizationTypeEntity } from '@app/custodian-lib/shared/organization-t
         OrganizationTypeModule,
         RoleModule,
         GuardianRoleModule,
+        CoreModule,
     ],
     exports: [UserService],
 })

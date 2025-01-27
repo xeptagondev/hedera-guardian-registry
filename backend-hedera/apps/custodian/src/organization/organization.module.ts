@@ -9,6 +9,7 @@ import { RoleEntity } from '@app/custodian-lib/shared/role/entity/role.entity';
 import { GuardianRoleEntity } from '@app/custodian-lib/shared/guardian-role/entity/guardian-role.entity';
 import { UsersEntity } from '@app/custodian-lib/shared/users/entity/users.entity';
 import { UserModule } from '../user/user.module';
+import { CoreModule } from '@app/api-lib/core/core.module';
 
 @Module({
     providers: [OrganizationService],
@@ -23,6 +24,7 @@ import { UserModule } from '../user/user.module';
         ]),
         AuditModule,
         UserModule,
+        CoreModule,
     ],
 })
 export class OrganizationModule {}
