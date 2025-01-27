@@ -165,6 +165,11 @@ export class UserService {
                 HttpStatus.FORBIDDEN,
             );
         }
+        userDto.request = requestUser;
+        userDto.password = '123';
+        userDto.hederaAccount = '0.0.5432396';
+        userDto.hederaKey =
+            '302e020100300506032b6570042204207e787d2ba05f3dd99ab2608ee859f8190ee107f8780a7769677c156b24b18860';
         const custodianResponse = await axios.post(
             this.configService.get('url') + this.configService.get('user.add'),
             userDto,

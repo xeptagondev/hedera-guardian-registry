@@ -47,7 +47,6 @@ export class UserService extends SuperService {
     }
 
     private tagToIdMap: Record<string, string> = {};
-    private refreshTokens: Record<string, string> = {};
     async createUser(userDTO: UsersDTO): Promise<boolean> {
         if (!userDTO.company) {
             console.log(`Company not provided for ${userDTO.email}`);
@@ -114,8 +113,11 @@ export class UserService extends SuperService {
                 };
                 try {
                     await this.auditService.save(auditLog);
-                    this.refreshTokens[loginDto.username] =
-                        response?.data?.refreshToken;
+
+                    this.utilService.setRefreshToken(
+                        loginDto.username,
+                        response?.data?.refreshToken,
+                    );
                     return response.data;
                 } catch (error) {
                     console.error(`Failed to add log: "${message}"`, error);
@@ -218,6 +220,7 @@ export class UserService extends SuperService {
 
     async register(userDto: UsersDTO) {
         try {
+            console.log(userDto);
             await this.setTagToIdMap();
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
@@ -517,9 +520,11 @@ export class UserService extends SuperService {
                 },
                 { payload: payload },
             );
-            if (userDto.role === RoleEnum.Admin) {
+            if (userDto?.request?.userRole === RoleEnum.Root) {
                 await this.approve(orgEntity.id, {
-                    refreshToken: userDto.refreshToken,
+                    refreshToken: this.utilService.getRefreshToken(
+                        userDto?.request?.userName,
+                    ),
                     remarks: '',
                 });
             }

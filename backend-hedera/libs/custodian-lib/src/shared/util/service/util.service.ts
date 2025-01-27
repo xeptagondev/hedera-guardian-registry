@@ -18,12 +18,21 @@ export class UtilService implements OnModuleInit {
         protected readonly auditService: AuditService,
     ) {}
     private tagToIdMap: Record<string, string> = {};
+    private refreshTokens: Record<string, string> = {};
+
     async onModuleInit() {
         const policy = await this.loadPolicyJson();
         this.tagToIdMap = this.mapTagsToIds(policy);
         await this.saveTagIdMap();
     }
 
+    setRefreshToken(username: string, refreshToken: string) {
+        this.refreshTokens[username] = refreshToken;
+    }
+
+    getRefreshToken(username: string) {
+        return this.refreshTokens[username];
+    }
     async login(loginDto: LoginDto) {
         try {
             const response = await axios.post(
