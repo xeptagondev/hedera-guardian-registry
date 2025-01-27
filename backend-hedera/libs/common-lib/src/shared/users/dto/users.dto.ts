@@ -6,6 +6,7 @@ import { IsEmail, IsNotEmpty } from 'class-validator';
 import { SuperDTO } from '@app/common-lib/core/dto/super.dto';
 import { UsersEntity } from '@app/custodian-lib/shared/users/entity/users.entity';
 import { Unwrap } from '@app/common-lib/core/util/unwrappable';
+import { JWTPayload } from '../../login/dto/jwt.payload.dto';
 
 export class UsersDTO extends SuperDTO<UsersEntity> {
     id: number;
@@ -32,4 +33,6 @@ export class UsersDTO extends SuperDTO<UsersEntity> {
     role: RoleEnum;
     @Unwrap({ name: 'organization' })
     company: OrganisationDto;
+
+    request: JWTPayload;
 }
