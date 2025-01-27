@@ -1460,6 +1460,65 @@ export const AddNewCompanyComponent = (props: any) => {
             <Col xl={12} md={24}>
               <div className="details-part-one">
                 <Form.Item
+                  label={t('addCompany:hederaAccount')}
+                  name="hederaAccount"
+                  rules={[
+                    {
+                      required: true,
+                      message: '',
+                    },
+                    {
+                      validator: async (rule, value) => {
+                        if (
+                          String(value).trim() === '' ||
+                          String(value).trim() === undefined ||
+                          value === null ||
+                          value === undefined
+                        ) {
+                          throw new Error(`${t('addCompany:hederaAccount')} ${t('isRequired')}`);
+                        }
+                      },
+                    },
+                  ]}
+                >
+                  <Input size="large" />
+                </Form.Item>
+              </div>
+            </Col>
+            <Col xl={12} md={24}>
+              <div className="details-part-two">
+                <Form.Item
+                  label={t('addCompany:hederaKey')}
+                  name="hederaKey"
+                  rules={[
+                    {
+                      required: true,
+                      message: '',
+                    },
+                    {
+                      validator: async (rule, value) => {
+                        if (
+                          String(value).trim() === '' ||
+                          String(value).trim() === undefined ||
+                          value === null ||
+                          value === undefined
+                        ) {
+                          throw new Error(`${t('addCompany:hederaKey')} ${t('isRequired')}`);
+                        }
+                      },
+                    },
+                  ]}
+                >
+                  <Input size="large" />
+                </Form.Item>
+              </div>
+            </Col>
+          </Row>
+
+          <Row className="row" gutter={[16, 16]}>
+            <Col xl={12} md={24}>
+              <div className="details-part-one">
+                <Form.Item
                   label={t('addCompany:name')}
                   name="name"
                   rules={[

@@ -47,43 +47,38 @@ export class UserService extends SuperService {
     }
 
     private tagToIdMap: Record<string, string> = {};
-    async createUser(userDTO: UsersDTO): Promise<boolean> {
-        if (!userDTO.company) {
-            console.log(`Company not provided for ${userDTO.email}`);
-            return false;
-        }
+    private refreshTokens: Record<string, string> = {};
 
-        // get organization entity
-        const org: OrganizationEntity =
-            await this.organizationRepository.findOneBy({
-                name: userDTO.company.name,
-            });
+    setRefreshToken(username: string, refreshToken: string) {
+        this.refreshTokens[username] = refreshToken;
+    }
 
-        const guardRole: GuardianRoleEntity =
-            await this.getGuardianRole(userDTO);
-
-        const userEntity: UsersEntity = {
-            email: userDTO.email,
-            name: userDTO.name,
-            password: userDTO.password,
-            phoneNumber: userDTO.phoneNumber,
-            organization: org,
-            guardianRole: guardRole,
-        };
-
-        await this.userRepository.save(userEntity);
+    getRefreshToken(username: string) {
+        return this.refreshTokens[username];
+    }
+    async updateUser(
+        userDTO: UsersDTO,
+        orgEntity: OrganizationEntity,
+        guardRole: GuardianRoleEntity,
+    ): Promise<boolean> {
+        await this.userRepository.update(
+            {
+                email: userDTO.email,
+            },
+            { organization: orgEntity, guardianRole: guardRole },
+        );
 
         return true;
     }
 
-    private async getGuardianRole(userDTO: UsersDTO) {
+    private async getGuardianRole(orgTypeId: number, userRole: string) {
         const orgType: OrganizationTypeEntity =
             await this.organizationTypeRepository.findOneBy({
-                name: userDTO.companyRole.toString(),
+                id: orgTypeId,
             });
 
         const role: RoleEntity = await this.roleRepository.findOneBy({
-            name: userDTO.role.toString(),
+            name: userRole,
         });
 
         // get guardian role
@@ -114,7 +109,7 @@ export class UserService extends SuperService {
                 try {
                     await this.auditService.save(auditLog);
 
-                    this.utilService.setRefreshToken(
+                    this.setRefreshToken(
                         loginDto.username,
                         response?.data?.refreshToken,
                     );
@@ -221,6 +216,7 @@ export class UserService extends SuperService {
     async register(userDto: UsersDTO) {
         try {
             console.log(userDto);
+            console.log(this.getRefreshToken(userDto.request.email));
             await this.setTagToIdMap();
             // 1: Login SRU and Gov. Root
             const sruLoginResponse = await this.login({
@@ -317,17 +313,30 @@ export class UserService extends SuperService {
     private async inviteNewUser(userDto: UsersDTO, userLoginResponse) {
         try {
             // 1. Generate an invite for the given role
-            const guardianRole = await this.getGuardianRole(userDto);
+            const org: OrganizationEntity =
+                await this.organizationRepository.findOne({
+                    where: {
+                        id: userDto.request.organizationId,
+                    },
+                    relations: {
+                        organizationType: true,
+                    },
+                });
+            const guardianRole = await this.getGuardianRole(
+                org?.organizationType?.id,
+                userDto.role,
+            );
+
             const inviteResponse = await axios.post(
-                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.invite.${userDto.companyRole}`))}`,
+                `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.invite.${org.organizationType.name}`))}`,
                 {
                     action: 'invite',
-                    group: userDto.group,
+                    group: org.group,
                     role: guardianRole.name,
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${await this.accessToken(userDto.refreshToken)}`,
+                        Authorization: `Bearer ${await this.accessToken(this.getRefreshToken(userDto?.request?.email))}`,
                         'Content-Type': 'application/json',
                     },
                 },
@@ -348,15 +357,7 @@ export class UserService extends SuperService {
             );
 
             // 3. Create the user with the role
-            const org: OrganizationEntity =
-                await this.organizationRepository.findOne({
-                    where: {
-                        group: userDto.group,
-                    },
-                    relations: {
-                        organizationType: true,
-                    },
-                });
+
             const createGroupResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.registration.${guardianRole.name}`))}`,
                 {
@@ -379,11 +380,10 @@ export class UserService extends SuperService {
                     },
                 },
             );
-            console.log(createGroupResponse);
 
-            await this.createUser(userDto);
+            await this.updateUser(userDto, org, guardianRole);
 
-            return createGroupResponse;
+            return createGroupResponse.data;
         } catch (e) {
             throw e;
         }
@@ -401,6 +401,8 @@ export class UserService extends SuperService {
                         organizationType: true,
                     },
                 });
+            console.log(organizationApproveDto);
+            console.log(orgEntity);
             const groupApproveResponse = await axios.post(
                 `${this.configService.get('guardian.url')}/api/v1/policies/${this.configService.get('policy.id')}/blocks/${this.getBlock(this.configService.get(`blocks.approve.${orgEntity.organizationType.name}`))}`,
                 orgEntity.payload,
@@ -518,37 +520,20 @@ export class UserService extends SuperService {
                 {
                     id: orgEntity.id,
                 },
-                { payload: payload },
+                { payload: payload, group: createGroupResponse?.data?.group },
             );
             if (userDto?.request?.userRole === RoleEnum.Root) {
                 await this.approve(orgEntity.id, {
-                    refreshToken: this.utilService.getRefreshToken(
-                        userDto?.request?.userName,
-                    ),
+                    refreshToken: this.getRefreshToken(userDto?.request?.email),
                     remarks: '',
                 });
             }
 
-            // II. Update user
-            // i. Get role entity
-            const role: RoleEntity = await this.roleRepository.findOneBy({
-                name: userDto.role.toString(),
-            });
-
-            // ii. Get guardian role entity
-            const guardRole: GuardianRoleEntity =
-                await this.guardianRoleRepository.findOneBy({
-                    organizationType: orgType,
-                    role: role,
-                });
-
-            // iii. Update user entity
-            await this.userRepository.update(
-                {
-                    email: userDto.email,
-                },
-                { organization: orgEntity, guardianRole: guardRole },
+            const guardianRole = await this.getGuardianRole(
+                orgType?.id,
+                userDto.role,
             );
+            await this.updateUser(userDto, orgEntity, guardianRole);
 
             return createGroupResponse.data;
         } catch (e) {

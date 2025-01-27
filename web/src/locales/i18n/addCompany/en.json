@@ -5,6 +5,8 @@
   "addCompanySub": "",
   "name": "Name",
   "email": "Email",
+  "hederaAccount": "Hedera Account",
+  "hederaKey": "Hedera Key",
   "taxId": "Tax ID",
   "paymentId": "Registration Payment ID",
   "website": "Website",

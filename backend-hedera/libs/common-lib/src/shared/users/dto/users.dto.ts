@@ -17,14 +17,10 @@ export class UsersDTO {
 
     name: string;
     phoneNumber?: string;
-    group: string;
-    refreshToken: string;
     hederaAccount: string;
     hederaKey: string;
     password: string;
-    companyRole: OrganizationTypeEnum;
     role: RoleEnum;
     company: OrganisationDto;
-
     request: JWTPayload;
 }

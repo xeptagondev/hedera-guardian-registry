@@ -17,13 +17,13 @@ export default () => ({
         policies: '/api/v1/policies/',
     },
     policy: {
-        id: '6790a931671ff72cb9b56754',
-        topicId: '0.0.5415758',
+        id: '6797595071e846be0ff6843b',
+        topicId: '0.0.5433426',
     },
     sru: {
         username: 'amilareg',
         password: '123456',
-        did: 'did:hedera:testnet:Hd3Q9whzRsi8YbEuJDVt1pnixzLJ888HhCBoa2Ba8TCi_0.0.5415745',
+        did: 'did:hedera:testnet:Hd3Q9whzRsi8YbEuJDVt1pnixzLJ888HhCBoa2Ba8TCi_0.0.5433423',
     },
 
     blocks: {
@@ -43,6 +43,17 @@ export default () => ({
 
         registration: {
             government_admin: 'government_admin_registration',
+            government_manager: 'government_manager_registration',
+            government_viewer: 'government_viewer_registration',
+            ministry_admin: 'ministry_admin_registration',
+            ministry_manager: 'ministry_manager_registration',
+            ministry_viewer: 'ministry_viewer_registration',
+            certifier_admin: 'certifier_admin_registration',
+            certifier_manager: 'certifier_manager_registration',
+            certifier_viewer: 'certifier_viewer_registration',
+            developer_admin: 'developer_admin_registration',
+            developer_manager: 'developer_manager_registration',
+            developer_viewer: 'developer_viewer_registration',
         },
         approve: {
             Developer: 'developer_organization_approve_reject_button',

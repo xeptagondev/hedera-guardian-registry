@@ -79,7 +79,7 @@ export const AddNewUserComponent = (props: any) => {
       } else {
         values.phoneNo = undefined;
       }
-      const response = await post('national/user/add', values);
+      const response = await post('user/add', values);
       if (response.status === 200 || response.status === 201) {
         message.open({
           type: 'success',
@@ -264,6 +264,64 @@ export const AddNewUserComponent = (props: any) => {
           requiredMark={true}
           onFinish={onSubmitData}
         >
+          <Row className="row" gutter={[16, 16]}>
+            <Col xl={12} md={24}>
+              <div className="details-part-one">
+                <Form.Item
+                  label={t('addUser:hederaAccount')}
+                  name="hederaAccount"
+                  rules={[
+                    {
+                      required: true,
+                      message: '',
+                    },
+                    {
+                      validator: async (rule, value) => {
+                        if (
+                          String(value).trim() === '' ||
+                          String(value).trim() === undefined ||
+                          value === null ||
+                          value === undefined
+                        ) {
+                          throw new Error(`${t('addUser:hederaAccount')} ${t('isRequired')}`);
+                        }
+                      },
+                    },
+                  ]}
+                >
+                  <Input size="large" />
+                </Form.Item>
+              </div>
+            </Col>
+            <Col xl={12} md={24}>
+              <div className="details-part-two">
+                <Form.Item
+                  label={t('addUser:hederaKey')}
+                  name="hederaKey"
+                  rules={[
+                    {
+                      required: true,
+                      message: '',
+                    },
+                    {
+                      validator: async (rule, value) => {
+                        if (
+                          String(value).trim() === '' ||
+                          String(value).trim() === undefined ||
+                          value === null ||
+                          value === undefined
+                        ) {
+                          throw new Error(`${t('addUser:hederaKey')} ${t('isRequired')}`);
+                        }
+                      },
+                    },
+                  ]}
+                >
+                  <Input size="large" />
+                </Form.Item>
+              </div>
+            </Col>
+          </Row>
           <Row className="row" gutter={[16, 16]}>
             <Col xl={12} md={24}>
               <div className="details-part-one">
