@@ -1,10 +1,5 @@
 import { LoginDto } from '@app/common-lib/shared/login/dto/login.dto';
-import {
-    HttpException,
-    HttpStatus,
-    Injectable,
-    OnModuleInit,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { UsersDTO } from '@app/common-lib/shared/users/dto/users.dto';
@@ -12,7 +7,7 @@ import * as crypto from 'crypto';
 import { AuditDTO } from '@app/custodian-lib/shared/audit/dto/audit.dto';
 import { LogLevel } from '@app/custodian-lib/shared/audit/enum/log-level.enum';
 import { AuditService } from '@app/custodian-lib/shared/audit/service/audit.service';
-import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
+// import { SuperService } from '@app/custodian-lib/shared/util/service/super.service';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersEntity } from '@app/custodian-lib/shared/users/entity/users.entity';
@@ -25,15 +20,16 @@ import { UtilService } from '@app/custodian-lib/shared/util/service/util.service
 import { OrganisationApproveDto } from '@app/common-lib/shared/organization/dto/approve.dto';
 import { OrganizationStateEnum } from '@app/common-lib/shared/organization/enum/organization.state.enum';
 import { RoleEnum } from '@app/common-lib/shared/role/enum/role.enum';
+import { SuperService } from '@app/common-lib/core/service/super.service';
 
 @Injectable()
-export class UserService extends SuperService {
+export class UserService extends SuperService<UsersEntity, UsersDTO> {
     constructor(
         protected readonly auditService: AuditService,
         protected readonly utilService: UtilService,
         protected readonly configService: ConfigService,
         @InjectRepository(UsersEntity)
-        private readonly userRepository: Repository<UsersEntity>,
+        protected readonly usersRepository: Repository<UsersEntity>,
         @InjectRepository(GuardianRoleEntity)
         private readonly guardianRoleRepository: Repository<GuardianRoleEntity>,
         @InjectRepository(RoleEntity)
@@ -43,7 +39,7 @@ export class UserService extends SuperService {
         @InjectRepository(OrganizationTypeEntity)
         private readonly organizationTypeRepository: Repository<OrganizationTypeEntity>,
     ) {
-        super(auditService);
+        super(usersRepository);
     }
 
     private tagToIdMap: Record<string, string> = {};
@@ -61,7 +57,7 @@ export class UserService extends SuperService {
         orgEntity: OrganizationEntity,
         guardRole: GuardianRoleEntity,
     ): Promise<boolean> {
-        await this.userRepository.update(
+        await this.usersRepository.update(
             {
                 email: userDTO.email,
             },
@@ -244,7 +240,7 @@ export class UserService extends SuperService {
 
             // i. Save user in db without organization and role
             const user: UsersEntity =
-                await this.userRepository.save(userEntity);
+                await this.usersRepository.save(userEntity);
 
             // 3. User login to the guardian backend
             const userLoginResponse = await this.login({
