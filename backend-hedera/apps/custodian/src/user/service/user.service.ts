@@ -245,7 +245,7 @@ export class UserService extends SuperService<UsersEntity, UsersDTO> {
                 username: userDto.email,
                 password: userDto.password,
             });
-
+            await this.delay(5000);
             // 4. Update the user profile with the parent (SRU)
             const updateResponse = await axios.put(
                 `${this.configService.get('guardian.url')}${this.configService.get('guardian.profileUpdate')}/${userDto.email}`,
