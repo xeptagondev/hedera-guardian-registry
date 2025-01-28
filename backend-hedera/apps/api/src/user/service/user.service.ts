@@ -154,16 +154,16 @@ export class UserService {
 
     async add(userDto: UsersDTO, requestUser?: JWTPayload) {
         // this.helperService.validateRequestUser(requestUser);
-        if (
-            requestUser &&
-            (requestUser.userRole == RoleEnum.Root ||
-                requestUser.userRole == RoleEnum.Admin)
-        ) {
-            throw new HttpException(
-                'User Not Authorized to Add user',
-                HttpStatus.FORBIDDEN,
-            );
-        }
+        // if (
+        //     requestUser &&
+        //     (requestUser.userRole == RoleEnum.Root ||
+        //         requestUser.userRole == RoleEnum.Admin)
+        // ) {
+        //     throw new HttpException(
+        //         'User Not Authorized to Add user',
+        //         HttpStatus.FORBIDDEN,
+        //     );
+        // }
         userDto.request = requestUser;
         userDto.password = '123'; // password will be generated with email service
         const custodianResponse = await axios.post(
